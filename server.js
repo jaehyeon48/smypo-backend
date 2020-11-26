@@ -20,12 +20,12 @@ app.use(express.json({ extended: false }));
 app.use(cookieParser());
 app.use('/avatars', express.static(path.join('/avatars')));
 
-app.use('/api/auth', require('./routes/authRoute'));
-app.use('/api/portfolio', require('./routes/portfolioRoute'));
-app.use('/api/user', require('./routes/userRoute'));
-app.use('/api/stock', require('./routes/stockRoute'));
-app.use('/api/cash', require('./routes/cashRoute'));
-app.use('/api/record', require('./routes/recordRoute'));
+app.use('/auth', require('./routes/authRoute'));
+app.use('/portfolio', require('./routes/portfolioRoute'));
+app.use('/user', require('./routes/userRoute'));
+app.use('/stock', require('./routes/stockRoute'));
+app.use('/cash', require('./routes/cashRoute'));
+app.use('/record', require('./routes/recordRoute'));
 
 
 const PORT = process.env.PORT || 5000;
