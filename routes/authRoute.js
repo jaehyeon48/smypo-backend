@@ -10,25 +10,25 @@ const {
 
 const authMiddleware = require('../middlewares/authMiddleware');
 
-// @ROUTE         GET api/auth
+// @ROUTE         GET auth
 // @DESCRIPTION   check authentication
 // @ACCESS        Private
 router.get('/', authMiddleware, checkAuthController);
 
 
-// @ROUTE         GET api/auth/logout
+// @ROUTE         GET auth/logout
 // @DESCRIPTION   Logout the user
 // @ACCESS        Private
 router.get('/logout', authMiddleware, logoutController);
 
 
-// @ROUTE         POST api/auth/login
+// @ROUTE         POST auth/login
 // @DESCRIPTION   Login user
 // @ACCESS        Public
 router.post('/login', loginController);
 
 
-// @ROUTE         POST api/auth/signup
+// @ROUTE         POST auth/signup
 // @DESCRIPTION   Register user
 // @ACCESS        Public
 router.post('/signup', signUpController);

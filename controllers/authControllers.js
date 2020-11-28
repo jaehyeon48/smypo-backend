@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../database/db');
 
 
-// @ROUTE         GET api/auth
+// @ROUTE         GET auth
 // @DESCRIPTION   check authentication
 // @ACCESS        Private
 async function checkAuthController(req, res) {
@@ -19,7 +19,7 @@ async function checkAuthController(req, res) {
 }
 
 
-// @ROUTE         GET api/auth/logout
+// @ROUTE         GET auth/logout
 // @DESCRIPTION   Logout the user
 // @ACCESS        Private
 function logoutController(req, res) {
@@ -27,7 +27,7 @@ function logoutController(req, res) {
 }
 
 
-// @ROUTE         POST api/auth/login
+// @ROUTE         POST auth/login
 // @DESCRIPTION   Login user
 // @ACCESS        Public
 async function loginController(req, res) {
@@ -61,7 +61,7 @@ async function loginController(req, res) {
 }
 
 
-// @ROUTE         POST api/auth/signup
+// @ROUTE         POST auth/signup
 // @DESCRIPTION   Register user
 // @ACCESS        Public
 async function signUpController(req, res) {
