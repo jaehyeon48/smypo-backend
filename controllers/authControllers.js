@@ -68,7 +68,7 @@ async function signUpController(req, res) {
   const { firstName, lastName, email, password } = req.body;
 
   try {
-    const checkExistUser = await pool.query(`SELECT userId FROM users WHERE email = '${email}'`);
+    const checkExistUser = await pool.query(`SELECT userId FROM user WHERE email = ?`, [email]);
 
     if (checkExistUser[0].length !== 0) {
       return res.status(400).json({ errorMsg: 'User already exists!' });
@@ -76,15 +76,11 @@ async function signUpController(req, res) {
 
     const encryptedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query(
-      `INSERT INTO users (firstName, lastName, email, password, theme)
-       VALUES ('${firstName}', '${lastName}', '${email}', '${encryptedPassword}', 'light')`
-    );
-
-    const [userIdRow] = await pool.query(`SELECT userId FROM users WHERE email = '${email}'`);
+    const [newUser] = await pool.query(`INSERT INTO user (firstName, lastName, email, password)
+      VALUES (?, ?, ?, ?)` , [firstName, lastName, email, encryptedPassword]);
 
     const jwtPayload = {
-      user: { id: userIdRow[0].userId }
+      user: { id: newUser.insertId }
     };
 
     jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '12h' }, (err, token) => { // set expiresIn 12h for testing purpose.
