@@ -34,20 +34,20 @@ async function loginController(req, res) {
   const { email, password } = req.body;
 
   try {
-    const [userRow] = await pool.query(`SELECT userId, password FROM users WHERE email = '${email}'`);
+    const [userInfo] = await pool.query(`SELECT userId, password FROM user WHERE email = ?`, [email]);
 
-    if (userRow[0] === undefined) {
+    if (userInfo[0] === undefined) {
       return res.status(400).json({ errorMsg: 'Email or password is invalid.' });
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, userRow[0].password);
+    const isPasswordMatch = await bcrypt.compare(password, userInfo[0].password);
 
     if (!isPasswordMatch) {
       return res.status(400).json({ errorMsg: 'Email or password is invalid.' });
     }
 
     const jwtPayload = {
-      user: { id: userRow[0].userId }
+      user: { id: userInfo[0].userId }
     };
 
     jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '12h' }, (err, token) => { // set expiresIn 12h for testing purpose.
