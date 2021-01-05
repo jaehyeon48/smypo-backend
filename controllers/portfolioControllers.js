@@ -7,7 +7,7 @@ const pool = require('../database/db');
 async function getPortfolios(req, res) {
   const userId = req.user.id;
   try {
-    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName FROM portfolios WHERE ownerId = '${userId}'`);
+    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName FROM portfolio WHERE ownerId = '${userId}'`);
 
     let resultPortfolio = [];
 
@@ -102,7 +102,7 @@ async function getStockInfoByTickerGroup(req, res) {
     ORDER BY transactionDate, transactionType, quantity
   `;
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolios WHERE portfolioId = ${portfolioId}`);
+    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
     if (userId !== ownerIdRow[0].ownerId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot read this portfolio info.' });
@@ -173,7 +173,7 @@ async function createPortfolio(req, res) {
   const { portfolioName, privacy } = req.body;
 
   try {
-    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolios WHERE userId = ${userId} AND portfolioName = '?'`, [portfolioName]);
+    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId} AND portfolioName = '?'`, [portfolioName]);
 
     if (isNameConflict[0]) {
       return res.status(400).json({ errorMsg: 'Portfolio name is already exists.' });
@@ -182,7 +182,7 @@ async function createPortfolio(req, res) {
     // check if the user does not have any portfolios
     const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE userId = ${userId}`);
 
-    const [newPortfolio] = await pool.query(`INSERT INTO portfolios (portfolioName, userId, privacy) VALUES ('?', ${userId},'${privacy}')`, [portfolioName]);
+    const [newPortfolio] = await pool.query(`INSERT INTO portfolio (portfolioName, userId, privacy) VALUES ('?', ${userId},'${privacy}')`, [portfolioName]);
 
     // if the portfolio is firstly created one, select the portfolio.
     if (!isNotFirstlyCreated[0]) {
@@ -223,19 +223,19 @@ async function editPortfolioName(req, res) {
   const { newPortfolioName } = req.body;
   const portfolioId = req.params.portfolioId;
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolios WHERE portfolioId = ${portfolioId}`);
+    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
     if (userId !== ownerIdRow[0].ownerId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot edit this portfolio.' });
     }
 
-    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolios WHERE portfolioName = '${newPortfolioName}'`);
+    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE portfolioName = '${newPortfolioName}'`);
 
     if (isNameConflict[0]) {
       return res.status(400).json({ errorMsg: 'The portfolio name already exists.' });
     }
 
-    await pool.query(`UPDATE portfolios SET portfolioName = '${newPortfolioName}' WHERE portfolioId = ${portfolioId}`);
+    await pool.query(`UPDATE portfolio SET portfolioName = '${newPortfolioName}' WHERE portfolioId = ${portfolioId}`);
 
     res.status(200).json({ successMsg: 'Successfully changed portfolio name.' });
   } catch (error) {
@@ -253,7 +253,7 @@ async function deletePortfolio(req, res) {
   const portfolioId = req.params.portfolioId;
 
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolios WHERE portfolioId = ${portfolioId}`);
+    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
     if (userId !== ownerIdRow[0].ownerId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this portfolio.' });
@@ -272,12 +272,12 @@ async function deletePortfolio(req, res) {
     await pool.query(`DELETE FROM cash WHERE portfolioId = ${portfolioId}`);
     await pool.query(`DELETE FROM selectedPortfolio WHERE portfolioId = ${portfolioId}`)
     await pool.query(`DELETE FROM stocks WHERE portfolioId = ${portfolioId}`);
-    await pool.query(`DELETE FROM portfolios WHERE portfolioId = ${portfolioId}`);
+    await pool.query(`DELETE FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
 
     // if the portfolio is selected one, select another portfolio if there exists other portfolios.
     if (isSelectedOne[0]) {
-      const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolios WHERE ownerId = ${userId}`);
+      const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolio WHERE ownerId = ${userId}`);
 
       if (userPortfolioRow[0]) {
         await pool.query(`INSERT INTO selectedPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
