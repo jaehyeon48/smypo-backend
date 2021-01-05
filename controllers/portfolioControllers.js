@@ -7,7 +7,7 @@ const pool = require('../database/db');
 async function getPortfolios(req, res) {
   const userId = req.user.id;
   try {
-    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName FROM portfolio WHERE userId = '${userId}'`);
+    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName, privacy FROM portfolio WHERE userId = '${userId}'`);
 
     let resultPortfolio = [];
 
