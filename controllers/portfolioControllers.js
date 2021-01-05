@@ -171,7 +171,6 @@ async function getRealizedStocks(req, res) {
 async function createPortfolio(req, res) {
   const userId = req.user.id;
   const { portfolioName, privacy } = req.body;
-  console.log(1)
   try {
     const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId} AND portfolioName = '?'`, [portfolioName]);
 
@@ -192,7 +191,7 @@ async function createPortfolio(req, res) {
     return res.status(201).json({ successMsg: 'New portfolio created' });
   } catch (error) {
     console.log(error)
-    return res.status(500).send(error);
+    return res.status(500).json({ errorMsg: 'Internal Server Error' });
   }
 }
 
