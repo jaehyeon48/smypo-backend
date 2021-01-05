@@ -192,7 +192,7 @@ async function createPortfolio(req, res) {
     return res.status(201).json({ successMsg: 'New portfolio created' });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+    return res.status(500).send(error);
   }
 }
 
