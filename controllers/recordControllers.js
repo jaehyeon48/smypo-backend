@@ -1,7 +1,7 @@
 const pool = require('../database/db');
 
 
-// @ROUTE         GET api/record/10days/:portfolioId
+// @ROUTE         GET record/10days/:portfolioId
 // @DESCRIPTION   Get Recent 10 Records
 // @ACCESS        Private
 async function getRecordsBy10(req, res) {
@@ -19,7 +19,7 @@ async function getRecordsBy10(req, res) {
   }
 }
 
-// @ROUTE         POST api/record/:portfolioId
+// @ROUTE         POST record/:portfolioId
 // @DESCRIPTION   Add A New Record
 // @ACCESS        Private
 async function addNewRecord(req, res) {

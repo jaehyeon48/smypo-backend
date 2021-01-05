@@ -2,7 +2,7 @@ const axios = require('axios');
 const pool = require('../database/db');
 
 
-// @ROUTE         GET api/stock/marketStatus
+// @ROUTE         GET stock/marketStatus
 // @DESCRIPTION   Check whether the exchange is opened or closed
 // @ACCESS        Private
 async function checkMarketStatus(req, res) {
@@ -26,7 +26,7 @@ async function checkMarketStatus(req, res) {
 }
 
 
-// @ROUTE         GET api/stock/realTime/:ticker
+// @ROUTE         GET stock/realTime/:ticker
 // @DESCRIPTION   Get Realtime Price and Change of the Stock
 // @ACCESS        Private
 async function getRealTimePriceAndChange(req, res) {
@@ -48,7 +48,7 @@ async function getRealTimePriceAndChange(req, res) {
   }
 }
 
-// @ROUTE         GET api/stock/close/:ticker
+// @ROUTE         GET stock/close/:ticker
 // @DESCRIPTION   Get Close Price of the Stock
 // @ACCESS        Private
 async function getClosePrice(req, res) {
@@ -69,7 +69,7 @@ async function getClosePrice(req, res) {
   }
 }
 
-// @ROUTE         GET api/stock/sector/:ticker
+// @ROUTE         GET stock/sector/:ticker
 // @DESCRIPTION   Get Information about the company
 // @ACCESS        Private
 async function getSectorInfo(req, res) {
@@ -85,7 +85,7 @@ async function getSectorInfo(req, res) {
   }
 }
 
-// @ROUTE         GET api/stock/info/:ticker
+// @ROUTE         GET stock/info/:ticker
 // @DESCRIPTION   Get Information about the company
 // @ACCESS        Private
 async function getCompanyInfo(req, res) {
@@ -102,7 +102,7 @@ async function getCompanyInfo(req, res) {
 }
 
 
-// @ROUTE         POST api/stock
+// @ROUTE         POST stock
 // @DESCRIPTION   Add New Stock
 // @ACCESS        Private
 async function addStock(req, res) {
@@ -144,7 +144,7 @@ async function addStock(req, res) {
 }
 
 
-// @ROUTE         PUT api/stock/:stockId
+// @ROUTE         PUT stock/:stockId
 // @DESCRIPTION   Edit Stock's Information
 // @ACCESS        Private
 async function editStock(req, res) {
@@ -190,7 +190,7 @@ async function editStock(req, res) {
 }
 
 
-// @ROUTE         DELETE api/stock/:stockId
+// @ROUTE         DELETE stock/:stockId
 // @DESCRIPTION   Delete Stock
 // @ACCESS        Private
 async function deleteStock(req, res) {
@@ -213,7 +213,7 @@ async function deleteStock(req, res) {
   }
 }
 
-// @ROUTE         DELETE api/stock/:portfolioId/:ticker
+// @ROUTE         DELETE stock/:portfolioId/:ticker
 // @DESCRIPTION   Close position
 // @ACCESS        Private
 async function closePosition(req, res) {

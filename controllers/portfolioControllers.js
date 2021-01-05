@@ -1,7 +1,7 @@
 const pool = require('../database/db');
 
 
-// @ROUTE         GET api/portfolio
+// @ROUTE         GET portfolio
 // @DESCRIPTION   Get all of the user's portfolios
 // @ACCESS        Private
 async function getPortfolios(req, res) {
@@ -26,7 +26,7 @@ async function getPortfolios(req, res) {
 }
 
 
-// @ROUTE         GET api/portfolio/:portfolioId/stocks
+// @ROUTE         GET portfolio/:portfolioId/stocks
 // @DESCRIPTION   Get Portfolio's stocks
 // @ACCESS        Private
 async function getPortfolioStocks(req, res) {
@@ -62,7 +62,7 @@ async function getPortfolioStocks(req, res) {
 }
 
 
-// @ROUTE         GET api/portfolio/:portfolioId/cash
+// @ROUTE         GET portfolio/:portfolioId/cash
 // @DESCRIPTION   Get Portfolio's cash
 // @ACCESS        Private
 async function getPortfolioCash(req, res) {
@@ -88,7 +88,7 @@ async function getPortfolioCash(req, res) {
 }
 
 
-// @ROUTE         GET api/portfolio/:portfolioId/:tickerName
+// @ROUTE         GET portfolio/:portfolioId/:tickerName
 // @DESCRIPTION   Get Information of the Ticker Group in the portfolio
 // @ACCESS        Private
 async function getStockInfoByTickerGroup(req, res) {
@@ -118,7 +118,7 @@ async function getStockInfoByTickerGroup(req, res) {
 }
 
 
-// @ROUTE         GET api/portfolio/select
+// @ROUTE         GET portfolio/select
 // @DESCRIPTION   Fetch selected portfolio
 // @ACCESS        Private
 async function getSelectedPortfolio(req, res) {
@@ -138,7 +138,7 @@ async function getSelectedPortfolio(req, res) {
 }
 
 
-// @ROUTE         GET api/portfolio/realized/:portfolioId
+// @ROUTE         GET portfolio/realized/:portfolioId
 // @DESCRIPTION   Get All Realized stock's info
 // @ACCESS        Private
 async function getRealizedStocks(req, res) {
@@ -165,7 +165,7 @@ async function getRealizedStocks(req, res) {
 }
 
 
-// @ROUTE         POST api/portfolio
+// @ROUTE         POST portfolio
 // @DESCRIPTION   Create New Portfolio
 // @ACCESS        Private
 async function createPortfolio(req, res) {
@@ -196,7 +196,7 @@ async function createPortfolio(req, res) {
   }
 }
 
-// @ROUTE         POST api/portfolio/select
+// @ROUTE         POST portfolio/select
 // @DESCRIPTION   Save selected portfolio into the DB
 // @ACCESS        Private
 async function selectPortfolio(req, res) {
@@ -215,7 +215,7 @@ async function selectPortfolio(req, res) {
 }
 
 
-// @ROUTE         PUT api/portfolio/:portfolioId
+// @ROUTE         PUT portfolio/:portfolioId
 // @DESCRIPTION   Edit Portfolio's Name
 // @ACCESS        Private
 async function editPortfolioName(req, res) {
@@ -245,7 +245,7 @@ async function editPortfolioName(req, res) {
 }
 
 
-// @ROUTE         DELETE api/portfolio/:portfolioId
+// @ROUTE         DELETE portfolio/:portfolioId
 // @DESCRIPTION   DELETE an portfolio all of its related information
 // @ACCESS        Private
 async function deletePortfolio(req, res) {

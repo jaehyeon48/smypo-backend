@@ -10,19 +10,19 @@ const {
 } = require('../controllers/cashControllers');
 
 
-// @ROUTE         POST api/cash
+// @ROUTE         POST cash
 // @DESCRIPTION   Add New Cash
 // @ACCESS        Private
 router.post('/', authMiddleware, addCash);
 
 
-// @ROUTE         PUT api/cash/:cashId
+// @ROUTE         PUT cash/:cashId
 // @DESCRIPTION   Edit Stock's Information
 // @ACCESS        Private
 router.put('/:cashId', authMiddleware, editCash);
 
 
-// @ROUTE         DELETE api/cash/:cashId
+// @ROUTE         DELETE cash/:cashId
 // @DESCRIPTION   Delete Cash
 // @ACCESS        Private
 router.delete('/:cashId', authMiddleware, deleteCash);

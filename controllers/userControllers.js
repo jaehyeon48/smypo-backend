@@ -10,7 +10,7 @@ const {
   deleteAvatarFromS3
 } = require('../utils/aws_s3');
 
-// @ROUTE         GET api/user/avatar
+// @ROUTE         GET user/avatar
 // @DESCRIPTION   Get user's avatar
 // @ACCESS        Private
 async function getAvatar(req, res) {
@@ -26,7 +26,7 @@ async function getAvatar(req, res) {
 }
 
 
-// @ROUTE         POST api/user/avatar
+// @ROUTE         POST user/avatar
 // @DESCRIPTION   Upload user's avatar
 // @ACCESS        Private
 async function uploadAvatar(req, res) {
@@ -54,7 +54,7 @@ async function uploadAvatar(req, res) {
 }
 
 
-// @ROUTE         PUT api/user
+// @ROUTE         PUT user
 // @DESCRIPTION   Edit User's profile
 // @ACCESS        Private
 async function editUser(req, res) {
@@ -95,7 +95,7 @@ async function editUser(req, res) {
 }
 
 
-// @ROUTE         DELETE api/user
+// @ROUTE         DELETE user
 // @DESCRIPTION   Delete user's account and all of its related information
 // @ACCESS        Private
 async function deleteUser(req, res) {

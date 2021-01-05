@@ -1,7 +1,7 @@
 const pool = require('../database/db');
 
 
-// @ROUTE         POST api/cash
+// @ROUTE         POST cash
 // @DESCRIPTION   Add New Cash
 // @ACCESS        Private
 async function addCash(req, res) {
@@ -21,7 +21,7 @@ async function addCash(req, res) {
 }
 
 
-// @ROUTE         PUT api/cash/:cashId
+// @ROUTE         PUT cash/:cashId
 // @DESCRIPTION   Edit Stock's Information
 // @ACCESS        Private
 async function editCash(req, res) {
@@ -50,7 +50,7 @@ async function editCash(req, res) {
 }
 
 
-// @ROUTE         DELETE api/cash/:cashId
+// @ROUTE         DELETE cash/:cashId
 // @DESCRIPTION   Delete Cash
 // @ACCESS        Private
 async function deleteCash(req, res) {
