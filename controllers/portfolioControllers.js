@@ -7,7 +7,7 @@ const pool = require('../database/db');
 async function getPortfolios(req, res) {
   const userId = req.user.id;
   try {
-    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName FROM portfolio WHERE ownerId = '${userId}'`);
+    const [userPortfolios] = await pool.query(`SELECT portfolioId, portfolioName FROM portfolio WHERE userId = '${userId}'`);
 
     let resultPortfolio = [];
 
@@ -36,10 +36,10 @@ async function getPortfolioStocks(req, res) {
     SELECT stocks.ticker, stocks.companyName, stocks.price, stocks.quantity, 
     stocks.transactionType, stocks.transactionDate
     FROM users
-      INNER JOIN portfolios
-        ON users.userId = ${userId} AND portfolios.portfolioId = ${portfolioId} AND users.userId = portfolios.ownerId 
+      INNER JOIN portfolio
+        ON users.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND users.userId = portfolio.userId 
       INNER JOIN stocks
-        ON users.userId = stocks.holderId AND portfolios.portfolioId = stocks.portfolioId
+        ON users.userId = stocks.holderId AND portfolio.portfolioId = stocks.portfolioId
       ORDER BY stocks.ticker, stocks.transactionDate, stocks.transactionType;`;
 
   try {
@@ -71,10 +71,10 @@ async function getPortfolioCash(req, res) {
   const getCashQuery = `
     SELECT cashId, cash.amount, cash.transactionType, cash.transactionDate
     FROM users
-	    INNER JOIN portfolios
-		    ON users.userId = ${userId} AND portfolios.portfolioId = ${portfolioId} AND users.userId = portfolios.ownerId
+	    INNER JOIN portfolio
+		    ON users.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND users.userId = portfolio.userId
 	    INNER JOIN cash
-		    ON users.userId = cash.holderId AND portfolios.portfolioId = cash.portfolioId
+		    ON users.userId = cash.holderId AND portfolio.portfolioId = cash.portfolioId
 	    ORDER BY transactionDate;
   `;
 
@@ -102,9 +102,9 @@ async function getStockInfoByTickerGroup(req, res) {
     ORDER BY transactionDate, transactionType, quantity
   `;
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
-    if (userId !== ownerIdRow[0].ownerId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot read this portfolio info.' });
     }
 
@@ -151,8 +151,8 @@ async function getRealizedStocks(req, res) {
       FROM stocks
         INNER JOIN users
           ON stocks.holderId = ${userId} AND stocks.holderId = users.userId 
-        INNER JOIN portfolios
-          ON stocks.portfolioId = ${portfolioId} AND stocks.portfolioId = portfolios.portfolioId
+        INNER JOIN portfolio
+          ON stocks.portfolioId = ${portfolioId} AND stocks.portfolioId = portfolio.portfolioId
         INNER JOIN realizedStocks
           ON stocks.stockId = realizedStocks.stockId
         ORDER BY ticker asc;
@@ -223,9 +223,9 @@ async function editPortfolioName(req, res) {
   const { newPortfolioName } = req.body;
   const portfolioId = req.params.portfolioId;
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
-    if (userId !== ownerIdRow[0].ownerId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot edit this portfolio.' });
     }
 
@@ -253,9 +253,9 @@ async function deletePortfolio(req, res) {
   const portfolioId = req.params.portfolioId;
 
   try {
-    const [ownerIdRow] = await pool.query(`SELECT ownerId FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
-    if (userId !== ownerIdRow[0].ownerId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this portfolio.' });
     }
 
@@ -277,7 +277,7 @@ async function deletePortfolio(req, res) {
 
     // if the portfolio is selected one, select another portfolio if there exists other portfolios.
     if (isSelectedOne[0]) {
-      const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolio WHERE ownerId = ${userId}`);
+      const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId}`);
 
       if (userPortfolioRow[0]) {
         await pool.query(`INSERT INTO selectedPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
