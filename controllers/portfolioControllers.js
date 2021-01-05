@@ -170,25 +170,25 @@ async function getRealizedStocks(req, res) {
 // @ACCESS        Private
 async function createPortfolio(req, res) {
   const userId = req.user.id;
-  const { portfolioName } = req.body;
+  const { portfolioName, privacy } = req.body;
 
   try {
-    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolios WHERE ownerId = ${userId} AND portfolioName = '${portfolioName}'`);
+    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolios WHERE userId = ${userId} AND portfolioName = '?'`, [portfolioName]);
 
     if (isNameConflict[0]) {
       return res.status(400).json({ errorMsg: 'Portfolio name is already exists.' });
     }
 
-    // if the portfolio is firstly created one, select portfolio.
+    // check if the user does not have any portfolios
     const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE userId = ${userId}`);
 
-    await pool.query(`INSERT INTO portfolios (portfolioName, ownerId) VALUES ('${portfolioName}', ${userId})`);
+    const [newPortfolio] = await pool.query(`INSERT INTO portfolios (portfolioName, userId, privacy) VALUES ('?', ${userId},'${privacy}')`, [portfolioName]);
 
+    // if the portfolio is firstly created one, select the portfolio.
     if (!isNotFirstlyCreated[0]) {
-      const [thePortfolioIdRow] = await pool.query(`SELECT portfolioId FROM portfolios WHERE ownerId = ${userId}`);
-
-      await pool.query(`INSERT INTO selectedPortfolio VALUES (${thePortfolioIdRow[0].portfolioId}, ${userId})`);
+      await pool.query(`INSERT INTO selectedPortfolio VALUES (${newPortfolio.insertId}, ${userId})`);
     }
+
     return res.status(201).json({ successMsg: 'New portfolio created' });
   } catch (error) {
     console.log(error)
