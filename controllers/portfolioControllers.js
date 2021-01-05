@@ -171,7 +171,7 @@ async function getRealizedStocks(req, res) {
 async function createPortfolio(req, res) {
   const userId = req.user.id;
   const { portfolioName, privacy } = req.body;
-
+  console.log(1)
   try {
     const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId} AND portfolioName = '?'`, [portfolioName]);
 
