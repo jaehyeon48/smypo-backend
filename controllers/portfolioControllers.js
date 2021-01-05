@@ -14,7 +14,8 @@ async function getPortfolios(req, res) {
     userPortfolios.map(portfolio => {
       resultPortfolio.push({
         portfolioId: portfolio.portfolioId,
-        portfolioName: portfolio.portfolioName
+        portfolioName: portfolio.portfolioName,
+        portfolioPrivacy: portfolio.privacy
       });
     });
 
