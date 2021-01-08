@@ -33,6 +33,7 @@ async function getPortfolios(req, res) {
 async function getPortfolioStocks(req, res) {
   const userId = req.user.id;
   const portfolioId = req.params.portfolioId;
+  console.log(1)
   const getStocksQuery = `
     SELECT stock.ticker, stock.companyName, stock.price, stock.quantity, 
     stock.transactionType, stock.transactionDate
@@ -45,7 +46,7 @@ async function getPortfolioStocks(req, res) {
 
   try {
     if (!portfolioId) {
-      console.log(1)
+      console.log(2)
       const [stocksRow] = await pool.query(getStocksQuery);
       if (!stocksRow) {
         return res.status(200).json(null);
@@ -55,12 +56,13 @@ async function getPortfolioStocks(req, res) {
       }
     }
     else {
+      console.log(3)
+
       return res.status(404);
     }
   } catch (error) {
     console.log(error)
-    res.status(500).send(error)
-    // return res.status(500).json({ errorMsg: 'Internal Server Error' });
+    return res.status(500).json({ errorMsg: 'Internal Server Error' });
   }
 }
 
