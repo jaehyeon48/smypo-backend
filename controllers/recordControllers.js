@@ -9,7 +9,7 @@ async function getRecordsBy10(req, res) {
   const portfolioId = req.params.portfolioId;
 
   try {
-    const [recordsRow] = await pool.query(`SELECT dailyReturn, totalValue, recordDate FROM dailyRecords WHERE userId = ${userId} AND portfolioId = ${portfolioId} ORDER BY recordDate desc LIMIT 10`);
+    const [recordsRow] = await pool.query(`SELECT dailyReturn, totalValue, recordDate FROM dailyRecord WHERE userId = ${userId} AND portfolioId = ${portfolioId} ORDER BY recordDate desc LIMIT 10`);
 
     recordsRow.reverse(); // make records sorted by date in ascending order
     return res.status(200).json({ records: recordsRow });
