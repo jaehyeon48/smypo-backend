@@ -46,7 +46,7 @@ async function getPortfolioStocks(req, res) {
   try {
     if (portfolioId !== null) {
       const [stocksRow] = await pool.query(getStocksQuery);
-      if (stocksRow.length === 0) {
+      if (!stocksRow) {
         return res.status(200).json(null);
       }
       else {
