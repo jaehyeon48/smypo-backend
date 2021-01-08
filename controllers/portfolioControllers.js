@@ -33,7 +33,6 @@ async function getPortfolios(req, res) {
 async function getPortfolioStocks(req, res) {
   const userId = req.user.id;
   const portfolioId = req.params.portfolioId;
-  console.log(1)
   const getStocksQuery = `
     SELECT stock.ticker, stock.companyName, stock.price, stock.quantity, 
     stock.transactionType, stock.transactionDate
@@ -45,8 +44,7 @@ async function getPortfolioStocks(req, res) {
       ORDER BY stock.ticker, stock.transactionDate, stock.transactionType;`;
 
   try {
-    if (!portfolioId) {
-      console.log(2)
+    if (portfolioId) {
       const [stocksRow] = await pool.query(getStocksQuery);
       if (!stocksRow) {
         return res.status(200).json(null);
@@ -56,9 +54,7 @@ async function getPortfolioStocks(req, res) {
       }
     }
     else {
-      console.log(3)
-
-      return res.status(404);
+      return res.status(404).json({ errorMsg: 'Portfolio id does not exist' });
     }
   } catch (error) {
     console.log(error)
