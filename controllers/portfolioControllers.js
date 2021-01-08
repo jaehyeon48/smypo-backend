@@ -44,7 +44,7 @@ async function getPortfolioStocks(req, res) {
       ORDER BY stock.ticker, stock.transactionDate, stock.transactionType;`;
 
   try {
-    if (portfolioId !== null) {
+    if (!portfolioId) {
       const [stocksRow] = await pool.query(getStocksQuery);
       if (!stocksRow) {
         return res.status(200).json(null);
@@ -64,7 +64,7 @@ async function getPortfolioStocks(req, res) {
 }
 
 
-// @ROUTE         GET portfolio/:portfolioId/cash
+// @ROUTE         GET portfolio/cash/:portfolioId
 // @DESCRIPTION   Get Portfolio's cash
 // @ACCESS        Private
 async function getPortfolioCash(req, res) {
@@ -104,12 +104,6 @@ async function getStockInfoByTickerGroup(req, res) {
     ORDER BY transactionDate, transactionType, quantity
   `;
   try {
-    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
-
-    if (userId !== userIdRow[0].userId) {
-      return res.status(403).json({ errorMsg: 'Wrong access: You cannot read this portfolio info.' });
-    }
-
     const [stocksRow] = await pool.query(getStockQuery);
 
     res.status(200).json(stocksRow);
