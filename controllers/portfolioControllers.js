@@ -27,7 +27,7 @@ async function getPortfolios(req, res) {
 }
 
 
-// @ROUTE         GET portfolio/:portfolioId/stocks
+// @ROUTE         GET portfolio/stocks/:portfolioId
 // @DESCRIPTION   Get Portfolio's stocks
 // @ACCESS        Private
 async function getPortfolioStocks(req, res) {
@@ -58,7 +58,8 @@ async function getPortfolioStocks(req, res) {
     }
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+    res.status(500).send(error)
+    // return res.status(500).json({ errorMsg: 'Internal Server Error' });
   }
 }
 
