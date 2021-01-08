@@ -107,29 +107,36 @@ async function getCompanyInfo(req, res) {
 // @ACCESS        Private
 async function addStock(req, res) {
   const userId = req.user.id;
-  const { portfolioId, ticker, companyName, price, quantity, referCash, currentAvgCost, transactionType, transactionDate } = req.body;
+  const {
+    portfolioId, ticker, companyName, price, quantity,
+    referCash, currentAvgCost, transactionType, transactionDate
+  } = req.body;
 
   try {
     if (referCash) {
       if (transactionType === 'buy') {
         const cashToWithdraw = parseFloat((price * quantity).toFixed(2));
-        await pool.query(`INSERT INTO cash (holderId, portfolioId, amount, transactionType, transactionDate) VALUES (${userId}, ${portfolioId}, ${cashToWithdraw}, 'withdraw', '${transactionDate}')`);
+        await pool.query(`
+        INSERT INTO cash (userId, portfolioId, amount, transactionType, transactionDate)
+        VALUES (${userId}, ${portfolioId}, ?, 'withdraw', ?)`,
+          [cashToWithdraw, transactionDate]);
       }
       else if (transactionType === 'sell') {
         const cashToDeposit = parseFloat((price * quantity).toFixed(2));
-        await pool.query(`INSERT INTO cash (holderId, portfolioId, amount, transactionType, transactionDate) VALUES (${userId}, ${portfolioId}, ${cashToDeposit}, 'deposit', '${transactionDate}')`);
+        await pool.query(`
+        INSERT INTO cash (userId, portfolioId, amount, transactionType, transactionDate)
+        VALUES (${userId}, ${portfolioId}, ?, 'deposit', ?)`,
+          [cashToDeposit, transactionDate]);
       }
     }
     const addStockResult = await pool.query(`
-      INSERT INTO 
-      stocks (holderId, portfolioId, ticker, companyName, price, 
+      INSERT INTO stocks (userId, portfolioId, ticker, companyName, price, 
         quantity, transactionType, transactionDate)
-      VALUES (${userId}, ${portfolioId}, '${ticker}', '${companyName}', 
-        ${price}, ${quantity}, '${transactionType}', '${transactionDate}')`);
+      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
+      [ticker, companyName, price, quantity, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
-      console.log(insertedStockId, currentAvgCost);
       await pool.query(`
         INSERT INTO realizedStocks (stockId, avgCost)
         VALUES (${insertedStockId}, ${currentAvgCost})
@@ -159,9 +166,9 @@ async function editStock(req, res) {
     WHERE stockId = ${stockId}`;
 
   try {
-    const [holderIdRow] = await pool.query(`SELECT holderId FROM stocks WHERE stockId = ${stockId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM stocks WHERE stockId = ${stockId}`);
 
-    if (userId !== holderIdRow[0].holderId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this stock info.' });
     }
 
@@ -197,9 +204,9 @@ async function deleteStock(req, res) {
   const stockId = req.params.stockId;
   const userId = req.user.id;
   try {
-    const [holderIdRow] = await pool.query(`SELECT holderId FROM stocks WHERE stockId = ${stockId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM stocks WHERE stockId = ${stockId}`);
 
-    if (userId !== holderIdRow[0].holderId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this stock info.' });
     }
 
@@ -222,7 +229,7 @@ async function closePosition(req, res) {
   const ticker = req.params.ticker;
 
   try {
-    await pool.query(`DELETE FROM stocks WHERE holderId = ${userId} AND portfolioId = ${portfolioId} AND ticker = '${ticker}'`);
+    await pool.query(`DELETE FROM stocks WHERE userId = ${userId} AND portfolioId = ${portfolioId} AND ticker = '${ticker}'`);
 
     res.status(200).json({ successMsg: 'Successfully closed the position' });
   } catch (error) {
