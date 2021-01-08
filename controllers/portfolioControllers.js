@@ -40,7 +40,7 @@ async function getPortfolioStocks(req, res) {
       INNER JOIN portfolio
         ON users.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND users.userId = portfolio.userId 
       INNER JOIN stocks
-        ON users.userId = stocks.holderId AND portfolio.portfolioId = stocks.portfolioId
+        ON users.userId = stocks.userId AND portfolio.portfolioId = stocks.portfolioId
       ORDER BY stocks.ticker, stocks.transactionDate, stocks.transactionType;`;
 
   try {
@@ -75,7 +75,7 @@ async function getPortfolioCash(req, res) {
 	    INNER JOIN portfolio
 		    ON users.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND users.userId = portfolio.userId
 	    INNER JOIN cash
-		    ON users.userId = cash.holderId AND portfolio.portfolioId = cash.portfolioId
+		    ON users.userId = cash.userId AND portfolio.portfolioId = cash.portfolioId
 	    ORDER BY transactionDate;
   `;
 
@@ -99,7 +99,7 @@ async function getStockInfoByTickerGroup(req, res) {
   const getStockQuery = `
     SELECT stockId, price, quantity, transactionType, transactionDate
     FROM stocks
-    WHERE ticker = '${tickerName}' AND holderId = ${userId} AND portfolioId = ${portfolioId}
+    WHERE ticker = '${tickerName}' AND userId = ${userId} AND portfolioId = ${portfolioId}
     ORDER BY transactionDate, transactionType, quantity
   `;
   try {
@@ -151,7 +151,7 @@ async function getRealizedStocks(req, res) {
       SELECT stocks.stockId, stocks.price, stocks.quantity, stocks.ticker, realizedStocks.avgCost
       FROM stocks
         INNER JOIN users
-          ON stocks.holderId = ${userId} AND stocks.holderId = users.userId 
+          ON stocks.userId = ${userId} AND stocks.userId = users.userId 
         INNER JOIN portfolio
           ON stocks.portfolioId = ${portfolioId} AND stocks.portfolioId = portfolio.portfolioId
         INNER JOIN realizedStocks
@@ -250,7 +250,7 @@ async function deletePortfolio(req, res) {
 
     const [isSelectedOne] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE portfolioId = ${portfolioId}`);
 
-    const [stocksInThePortfolio] = await pool.query(`SELECT stockId FROM stocks WHERE holderId = ${userId} AND portfolioId = ${portfolioId}`);
+    const [stocksInThePortfolio] = await pool.query(`SELECT stockId FROM stocks WHERE userId = ${userId} AND portfolioId = ${portfolioId}`);
 
     // delete every realized stock data
     for (const stock of stocksInThePortfolio) {

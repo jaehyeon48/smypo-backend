@@ -8,7 +8,7 @@ async function addCash(req, res) {
   const userId = req.user.id;
   const { portfolioId, amount, transactionType, transactionDate } = req.body;
   const addCashQuery = `
-    INSERT INTO cash (holderId, portfolioId, amount, transactionType, transactionDate)
+    INSERT INTO cash (userId, portfolioId, amount, transactionType, transactionDate)
     VALUES (${userId}, ${portfolioId}, ${amount}, '${transactionType}', '${transactionDate}')`;
   try {
     await pool.query(addCashQuery);
@@ -34,9 +34,9 @@ async function editCash(req, res) {
     WHERE cashId = ${cashId}`;
 
   try {
-    const [holderIdRow] = await pool.query(`SELECT holderId FROM cash WHERE cashId = ${cashId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM cash WHERE cashId = ${cashId}`);
 
-    if (userId !== holderIdRow[0].holderId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this cash info.' });
     }
 
@@ -58,9 +58,9 @@ async function deleteCash(req, res) {
   const userId = req.user.id;
   const deleteCashQuery = `DELETE FROM cash WHERE cashId = ${cashId}`;
   try {
-    const [holderIdRow] = await pool.query(`SELECT holderId FROM cash WHERE cashId = ${cashId}`);
+    const [userIdRow] = await pool.query(`SELECT userId FROM cash WHERE cashId = ${cashId}`);
 
-    if (userId !== holderIdRow[0].holderId) {
+    if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this cash info.' });
     }
     await pool.query(deleteCashQuery);
