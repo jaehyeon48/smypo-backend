@@ -173,12 +173,6 @@ async function createPortfolio(req, res) {
   const userId = req.user.id;
   const { portfolioName, privacy } = req.body;
   try {
-    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId} AND portfolioName = ?`, [portfolioName]);
-
-    if (isNameConflict[0]) {
-      return res.status(400).json({ errorMsg: 'Portfolio name is already exists.' });
-    }
-
     // check if the user does not have any portfolios
     const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE userId = ${userId}`);
 
@@ -216,11 +210,11 @@ async function selectPortfolio(req, res) {
 
 
 // @ROUTE         PUT portfolio/:portfolioId
-// @DESCRIPTION   Edit Portfolio's Name
+// @DESCRIPTION   Edit Portfolio
 // @ACCESS        Private
 async function editPortfolioName(req, res) {
   const userId = req.user.id;
-  const { newPortfolioName } = req.body;
+  const { newPortfolioName, newPortfolioPrivacy } = req.body;
   const portfolioId = req.params.portfolioId;
   try {
     const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
@@ -229,15 +223,10 @@ async function editPortfolioName(req, res) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot edit this portfolio.' });
     }
 
-    const [isNameConflict] = await pool.query(`SELECT portfolioId FROM portfolio WHERE portfolioName = '${newPortfolioName}'`);
+    await pool.query(`UPDATE portfolio SET portfolioName = ?, privacy = ? WHERE portfolioId = ${portfolioId}`,
+      [newPortfolioName, newPortfolioPrivacy]);
 
-    if (isNameConflict[0]) {
-      return res.status(400).json({ errorMsg: 'The portfolio name already exists.' });
-    }
-
-    await pool.query(`UPDATE portfolio SET portfolioName = '${newPortfolioName}' WHERE portfolioId = ${portfolioId}`);
-
-    res.status(200).json({ successMsg: 'Successfully changed portfolio name.' });
+    res.status(200).json({ successMsg: 'Successfully changed portfolio.' });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ errorMsg: 'Internal Server Error' });

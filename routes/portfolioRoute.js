@@ -66,7 +66,7 @@ router.post('/select', authMiddleware, selectPortfolio);
 
 
 // @ROUTE         PUT portfolio/:portfolioId
-// @DESCRIPTION   Edit Portfolio's Name
+// @DESCRIPTION   Edit Portfolio
 // @ACCESS        Private
 router.put('/:portfolioId', authMiddleware, editPortfolioName);
 
