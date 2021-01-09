@@ -54,7 +54,7 @@ async function getPortfolioStocks(req, res) {
       }
     }
     else {
-      return res.status(404).json({ errorMsg: 'Portfolio id does not exist' });
+      return res.status(200).json({ errorMsg: 'Portfolio id does not exist' });
     }
   } catch (error) {
     console.log(error)
@@ -122,7 +122,7 @@ async function getDefaultPortfolio(req, res) {
     const [defaultPortfolioRow] = await pool.query(`SELECT * FROM defaultPortfolio WHERE userId = ${userId}`);
 
     if (!defaultPortfolioRow[0]) {
-      return res.status(404).json({ errorMsg: 'Default portfolio does not exist' });
+      return res.status(200).json({ defaultPortfolioId: null });
     }
 
     return res.status(200).json({ defaultPortfolioId: defaultPortfolioRow[0].portfolioId });
