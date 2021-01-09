@@ -133,6 +133,23 @@ async function getDefaultPortfolio(req, res) {
 }
 
 
+// @ROUTE         GET portfolio/default/name/:defaultPortfolioId
+// @DESCRIPTION   Get default portfolio's name
+// @ACCESS        Private 
+async function getDefaultPortfolioName(req, res) {
+  const defaultPortfolioId = req.params.defaultPortfolioId;
+
+  try {
+    const [response] = await pool.query(`SELECT portfolioName FROM portfolio WHERE portfolioId = ${defaultPortfolioId}`);
+
+    return res.json({ name: response.data })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+  }
+}
+
+
 // @ROUTE         GET portfolio/realized/:portfolioId
 // @DESCRIPTION   Get All Realized stock's info
 // @ACCESS        Private
@@ -278,6 +295,7 @@ module.exports = {
   getPortfolios,
   getPortfolioStocks,
   getDefaultPortfolio,
+  getDefaultPortfolioName,
   getPortfolioCash,
   getStockInfoByTickerGroup,
   getRealizedStocks,

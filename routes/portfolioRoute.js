@@ -5,6 +5,7 @@ const {
   getPortfolios,
   getPortfolioStocks,
   getDefaultPortfolio,
+  getDefaultPortfolioName,
   getPortfolioCash,
   getStockInfoByTickerGroup,
   getRealizedStocks,
@@ -45,6 +46,12 @@ router.get('/group/:portfolioId/:tickerName', authMiddleware, getStockInfoByTick
 // @DESCRIPTION   Get default portfolio
 // @ACCESS        Private
 router.get('/default', authMiddleware, getDefaultPortfolio);
+
+
+// @ROUTE         GET portfolio/default/name/:defaultPortfolioId
+// @DESCRIPTION   Get default portfolio's name
+// @ACCESS        Public 
+router.get('/default/name/:defaultPortfolioId', getDefaultPortfolioName);
 
 
 // @ROUTE         GET portfolio/realized/:portfolioId
