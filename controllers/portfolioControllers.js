@@ -113,19 +113,19 @@ async function getStockInfoByTickerGroup(req, res) {
 }
 
 
-// @ROUTE         GET portfolio/select
-// @DESCRIPTION   Fetch selected portfolio
+// @ROUTE         GET portfolio/default
+// @DESCRIPTION   Get default portfolio
 // @ACCESS        Private
-async function getSelectedPortfolio(req, res) {
+async function getDefaultPortfolio(req, res) {
   const userId = req.user.id;
   try {
-    const [selectedPortfolioRow] = await pool.query(`SELECT * FROM selectedPortfolio WHERE userId = ${userId}`);
+    const [defaultPortfolioRow] = await pool.query(`SELECT * FROM defaultPortfolio WHERE userId = ${userId}`);
 
-    if (!selectedPortfolioRow[0]) {
-      return res.status(404).json({ errorMsg: 'Selected portfolio does not exist' });
+    if (!defaultPortfolioRow[0]) {
+      return res.status(404).json({ errorMsg: 'Default portfolio does not exist' });
     }
 
-    return res.status(200).json({ selectedPortfolioId: selectedPortfolioRow[0].portfolioId });
+    return res.status(200).json({ defaultPortfolioId: defaultPortfolioRow[0].portfolioId });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ errorMsg: 'Internal Server Error' });
@@ -168,13 +168,13 @@ async function createPortfolio(req, res) {
   const { portfolioName, privacy } = req.body;
   try {
     // check if the user does not have any portfolios
-    const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE userId = ${userId}`);
+    const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM defaultPortfolio WHERE userId = ${userId}`);
 
     const [newPortfolio] = await pool.query(`INSERT INTO portfolio (portfolioName, userId, privacy) VALUES (?, ${userId},'${privacy}')`, [portfolioName]);
 
     // if the portfolio is firstly created one, select the portfolio.
     if (!isNotFirstlyCreated[0]) {
-      await pool.query(`INSERT INTO selectedPortfolio VALUES (${newPortfolio.insertId}, ${userId})`);
+      await pool.query(`INSERT INTO defaultPortfolio VALUES (${newPortfolio.insertId}, ${userId})`);
     }
 
     return res.status(201).json({ successMsg: 'New portfolio created' });
@@ -184,18 +184,18 @@ async function createPortfolio(req, res) {
   }
 }
 
-// @ROUTE         POST portfolio/select
-// @DESCRIPTION   Save selected portfolio into the DB
+// @ROUTE         POST portfolio/default
+// @DESCRIPTION   Select default portfolio
 // @ACCESS        Private
 async function selectPortfolio(req, res) {
   const userId = req.user.id;
   const { portfolioId } = req.body;
   try {
-    // delete a previously selected portfolio
-    await pool.query(`DELETE FROM selectedPortfolio WHERE userId = ${userId}`);
-    await pool.query(`INSERT INTO selectedPortfolio VALUES (${portfolioId}, ${userId})`);
+    // delete a previous default portfolio
+    await pool.query(`DELETE FROM defaultPortfolio WHERE userId = ${userId}`);
+    await pool.query(`INSERT INTO defaultPortfolio VALUES (${portfolioId}, ${userId})`);
 
-    return res.status(201).json({ selectedPortfolioId: portfolioId });
+    return res.status(201).json({ defaultPortfolioId: portfolioId });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ errorMsg: 'Internal Server Error' });
@@ -242,7 +242,7 @@ async function deletePortfolio(req, res) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this portfolio.' });
     }
 
-    const [isSelectedOne] = await pool.query(`SELECT portfolioId FROM selectedPortfolio WHERE portfolioId = ${portfolioId}`);
+    const [isDefaultOne] = await pool.query(`SELECT portfolioId FROM defaultPortfolio WHERE portfolioId = ${portfolioId}`);
 
     const [stocksInThePortfolio] = await pool.query(`SELECT stockId FROM stock WHERE userId = ${userId} AND portfolioId = ${portfolioId}`);
 
@@ -253,17 +253,17 @@ async function deletePortfolio(req, res) {
 
     await pool.query(`DELETE FROM dailyRecord WHERE portfolioId = ${portfolioId}`);
     await pool.query(`DELETE FROM cash WHERE portfolioId = ${portfolioId}`);
-    await pool.query(`DELETE FROM selectedPortfolio WHERE portfolioId = ${portfolioId}`)
+    await pool.query(`DELETE FROM defaultPortfolio WHERE portfolioId = ${portfolioId}`)
     await pool.query(`DELETE FROM stock WHERE portfolioId = ${portfolioId}`);
     await pool.query(`DELETE FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
 
-    // if the portfolio is selected one, select another portfolio if there exists other portfolios.
-    if (isSelectedOne[0]) {
+    // if the portfolio is default one, select another portfolio if there exists other portfolios.
+    if (isDefaultOne[0]) {
       const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId}`);
 
       if (userPortfolioRow[0]) {
-        await pool.query(`INSERT INTO selectedPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
+        await pool.query(`INSERT INTO defaultPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
       }
     }
 
@@ -277,7 +277,7 @@ async function deletePortfolio(req, res) {
 module.exports = {
   getPortfolios,
   getPortfolioStocks,
-  getSelectedPortfolio,
+  getDefaultPortfolio,
   getPortfolioCash,
   getStockInfoByTickerGroup,
   getRealizedStocks,

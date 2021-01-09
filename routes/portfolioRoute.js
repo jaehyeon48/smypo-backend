@@ -4,7 +4,7 @@ const router = express.Router();
 const {
   getPortfolios,
   getPortfolioStocks,
-  getSelectedPortfolio,
+  getDefaultPortfolio,
   getPortfolioCash,
   getStockInfoByTickerGroup,
   getRealizedStocks,
@@ -41,10 +41,10 @@ router.get('/cash/:portfolioId', authMiddleware, getPortfolioCash);
 router.get('/group/:portfolioId/:tickerName', authMiddleware, getStockInfoByTickerGroup);
 
 
-// @ROUTE         GET portfolio/select
-// @DESCRIPTION   Fetch selected portfolio
+// @ROUTE         GET portfolio/default
+// @DESCRIPTION   Get default portfolio
 // @ACCESS        Private
-router.get('/select', authMiddleware, getSelectedPortfolio);
+router.get('/default', authMiddleware, getDefaultPortfolio);
 
 
 // @ROUTE         GET portfolio/realized/:portfolioId
@@ -59,10 +59,10 @@ router.get('/realized/:portfolioId', authMiddleware, getRealizedStocks);
 router.post('/', authMiddleware, createPortfolio);
 
 
-// @ROUTE         POST portfolio/select
-// @DESCRIPTION   Save selected portfolio into the DB
+// @ROUTE         POST portfolio/default
+// @DESCRIPTION   Select default portfolio
 // @ACCESS        Private
-router.post('/select', authMiddleware, selectPortfolio);
+router.post('/default', authMiddleware, selectPortfolio);
 
 
 // @ROUTE         PUT portfolio/:portfolioId

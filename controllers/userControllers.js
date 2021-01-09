@@ -109,7 +109,7 @@ async function deleteUser(req, res) {
 
     await pool.query(`DELETE FROM cash WHERE userId = ${userId}`);
     await pool.query(`DELETE FROM stock WHERE userId = ${userId}`);
-    await pool.query(`DELETE FROM selected_portfolio WHERE userId = ${userId}`);
+    await pool.query(`DELETE FROM defaultPortfolio WHERE userId = ${userId}`);
     await pool.query(`DELETE FROM portfolio WHERE userId = ${userId}`);
     await pool.query(`DELETE FROM user WHERE userId = ${userId}`);
 
