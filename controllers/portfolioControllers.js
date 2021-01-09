@@ -142,7 +142,7 @@ async function getDefaultPortfolioName(req, res) {
   try {
     const [response] = await pool.query(`SELECT portfolioName FROM portfolio WHERE portfolioId = ${defaultPortfolioId}`);
 
-    return res.json({ name: response.data })
+    return res.json({ name: response.portfolioName })
   } catch (error) {
     console.log(error)
     return res.status(500).json({ errorMsg: 'Internal Server Error' });
