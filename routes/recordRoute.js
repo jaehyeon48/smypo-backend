@@ -10,7 +10,7 @@ const {
 } = require('../controllers/recordControllers');
 
 
-// @ROUTE         GET records/10days/:portfolioId
+// @ROUTE         GET record/10days/:portfolioId
 // @DESCRIPTION   Get Recent 10 Records
 // @ACCESS        Private
 router.get('/10days/:portfolioId', authMiddleware, getRecordsBy10);
