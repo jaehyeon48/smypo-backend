@@ -66,9 +66,9 @@ async function checkMarketWasOpened() {
 
 async function getUserIdByPortfolioId(portfolioId) {
   try {
-    const [userListRows] = await pool.query(`SELECT ownerId FROM portfolios WHERE portfolioId = ${portfolioId}`);
+    const [userListRows] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
 
-    return userListRows[0].ownerId;
+    return userListRows[0].userId;
   } catch (error) {
     console.error(error);
   }
@@ -77,7 +77,7 @@ async function getUserIdByPortfolioId(portfolioId) {
 async function getAllPortfolios() {
   const portfolioIds = [];
   try {
-    const [portfoliosRow] = await pool.query('SELECT portfolioId FROM portfolios ORDER BY portfolioId asc');
+    const [portfoliosRow] = await pool.query('SELECT portfolioId FROM portfolio ORDER BY portfolioId asc');
 
     portfoliosRow.forEach((portfolio) => {
       portfolioIds.push(portfolio.portfolioId);
@@ -92,14 +92,14 @@ async function getAllPortfolios() {
 async function getStockData(userId, portfolioId) {
   try {
     const getStocksQuery = `
-    SELECT stocks.ticker, stocks.companyName, stocks.price, stocks.quantity, 
-    stocks.transactionType, stocks.transactionDate
-    FROM users
-      INNER JOIN portfolios
-        ON users.userId = ${userId} AND portfolios.portfolioId = ${portfolioId} AND users.userId = portfolios.ownerId 
-      INNER JOIN stocks
-        ON users.userId = stocks.holderId AND portfolios.portfolioId = stocks.portfolioId
-      ORDER BY stocks.ticker, stocks.transactionDate, stocks.transactionType;`;
+    SELECT stock.ticker, stock.companyName, stock.price, stock.quantity, 
+    stock.transactionType, stock.transactionDate
+    FROM user
+      INNER JOIN portfolio
+        ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId 
+      INNER JOIN stock
+        ON user.userId = stock.userId AND portfolio.portfolioId = stock.portfolioId
+      ORDER BY stock.ticker, stock.transactionDate, stock.transactionType;`;
     const [stocksRow] = await pool.query(getStocksQuery);
     return stocksRow;
   } catch (error) {
@@ -198,11 +198,11 @@ async function getClosePrice(ticker) {
 async function getTotalCash(userId, portfolioId) {
   const getCashQuery = `
     SELECT cashId, cash.amount, cash.transactionType, cash.transactionDate
-    FROM users
-	    INNER JOIN portfolios
-		    ON users.userId = ${userId} AND portfolios.portfolioId = ${portfolioId} AND users.userId = portfolios.ownerId
+    FROM user
+	    INNER JOIN portfolio
+		    ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId
 	    INNER JOIN cash
-		    ON users.userId = cash.holderId AND portfolios.portfolioId = cash.portfolioId
+		    ON user.userId = cash.userId AND portfolio.portfolioId = cash.portfolioId
 	    ORDER BY transactionDate;
   `;
 
@@ -230,7 +230,7 @@ function calculateTotalCashAmount(cashList) {
 
 async function saveRecordIntoDB(recordData) {
   const todayDate = new Date().toJSON().slice(0, 10);
-  await pool.query(`INSERT INTO dailyRecords (userId, portfolioId, dailyReturn, totalValue, recordDate) VALUES (${recordData.userId}, ${recordData.portfolioId}, 0, ${recordData.totalValue}, '${todayDate}')`);
+  await pool.query(`INSERT INTO dailyRecord (userId, portfolioId, dailyReturn, totalValue, recordDate) VALUES (${recordData.userId}, ${recordData.portfolioId}, 0, ${recordData.totalValue}, '${todayDate}')`);
 }
 
 saveRecordScheduler();
