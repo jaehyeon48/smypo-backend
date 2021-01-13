@@ -11,7 +11,7 @@ async function checkAuthController(req, res) {
   const userId = req.user.id;
   try {
     const [userInfo] = await pool.query(`SELECT userId, firstName, lastName, email,
-    avatar, theme, lang FROM user WHERE userId = ?`, [userId]);
+    avatar, theme, lang, currency FROM user WHERE userId = ?`, [userId]);
 
     return res.status(200).json(userInfo[0]);
   } catch (err) {
