@@ -46,12 +46,7 @@ async function getPortfolioStocks(req, res) {
   try {
     if (portfolioId) {
       const [stocksRow] = await pool.query(getStocksQuery);
-      if (!stocksRow) {
-        return res.status(404).json(null);
-      }
-      else {
-        return res.status(200).json(stocksRow);
-      }
+      return res.status(200).json(stocksRow);
     }
     else {
       return res.status(400).json({ errorMsg: 'Portfolio id does not exist' });
