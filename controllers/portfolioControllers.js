@@ -122,7 +122,7 @@ async function getDefaultPortfolio(req, res) {
     const [defaultPortfolioRow] = await pool.query(`SELECT * FROM defaultPortfolio WHERE userId = ${userId}`);
 
     if (!defaultPortfolioRow[0]) {
-      return res.status(200).json({ defaultPortfolioId: null });
+      return res.status(404).json({ defaultPortfolioId: null });
     }
 
     return res.status(200).json({ defaultPortfolioId: defaultPortfolioRow[0].portfolioId });
