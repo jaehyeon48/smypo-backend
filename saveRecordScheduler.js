@@ -16,18 +16,18 @@ async function saveRecordScheduler() {
       const stocks = await getStockData(userId, portfolioId);
       const organizedStocks = await sortStocks(stocks);
       // calculate total value of stocks in each portfolio
-      const totalValueOfPortfolio = await calculateValueOfStock(organizedStocks);
-
+      const portfolioValueData = await calculateValueOfStock(organizedStocks);
       const totalCash = await getTotalCash(userId, portfolioId);
       usersValueData.push({
         userId,
         portfolioId,
-        totalValue: parseFloat((totalValueOfPortfolio + totalCash).toFixed(2))
+        dailyReturn: portfolioValueData.dailyReturn,
+        totalValue: parseFloat((portfolioValueData.overallReturn + totalCash).toFixed(2))
       });
 
     }
 
-    // save total value into DB
+    // save data into DB
     for (const valueDataItem of usersValueData) {
       await saveRecordIntoDB(valueDataItem);
     }
@@ -173,22 +173,32 @@ async function organizeGroupedStocks(ticker, shareInfo) {
 // calculate total value of each stock by adding cost, total return
 async function calculateValueOfStock(stocks) {
   let totalCostOfStocks = 0;
+  let totalDailyReturn = 0;
   let totalOverallReturn = 0;
   for (const stock of stocks) {
-    const closePrice = await getClosePrice(stock.ticker);
-
-    totalOverallReturn += (closePrice - stock.avgCost) * stock.quantity; // overall return
-    totalCostOfStocks += stock.avgCost * stock.quantity;
+    if (stock.quantity > 0) {
+      const closePriceData = await getClosePriceData(stock.ticker);
+      const { closePrice, dailyChange } = closePriceData
+      totalDailyReturn += dailyChange * stock.quantity;
+      totalOverallReturn += (closePrice - stock.avgCost) * stock.quantity; // overall return
+      totalCostOfStocks += stock.avgCost * stock.quantity;
+    }
   }
-  return (totalCostOfStocks + totalOverallReturn);
+  return {
+    dailyReturn: totalDailyReturn,
+    overallReturn: totalCostOfStocks + totalOverallReturn
+  };
 }
 
-async function getClosePrice(ticker) {
+async function getClosePriceData(ticker) {
   const apiUrl = `https://cloud.iexapis.com/stable/stock/${ticker}/quote/?token=${process.env.IEX_CLOUD_API_KEY}`;
 
   try {
     const response = await axios.get(apiUrl);
-    return response.data.latestPrice;
+    return {
+      closePrice: response.data.latestPrice,
+      dailyChange: response.data.change
+    };
   } catch (error) {
     console.error(error);
   }
@@ -232,7 +242,7 @@ function calculateTotalCashAmount(cashList) {
 
 async function saveRecordIntoDB(recordData) {
   const todayDate = new Date().toJSON().slice(0, 10);
-  await pool.query(`INSERT INTO dailyRecord (userId, portfolioId, dailyReturn, totalValue, recordDate) VALUES (${recordData.userId}, ${recordData.portfolioId}, 0, ${recordData.totalValue}, '${todayDate}')`);
+  await pool.query(`INSERT INTO dailyRecord (userId, portfolioId, dailyReturn, totalValue, recordDate) VALUES (${recordData.userId}, ${recordData.portfolioId}, ${recordData.dailyReturn}, ${recordData.totalValue}, '${todayDate}')`);
 }
 
 saveRecordScheduler();
