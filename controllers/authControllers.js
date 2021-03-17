@@ -25,8 +25,14 @@ async function checkAuthController(req, res) {
 // @ROUTE         GET auth/logout
 // @DESCRIPTION   Logout the user
 // @ACCESS        Private
-function logoutController(req, res) {
-  res.status(200).cookie('token', '', { httpOnly: true, sameSite: 'none', secure: true, maxAge: '-1' }).json({ successMsg: 'Successfully logged out' });
+async function logoutController(req, res) {
+  const userId = req.user.id;
+  // Remove refresh token from the DB
+  await pool.query('DELETE FROM refreshToken WHERE userId = ?', [userId]);
+  /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
+  res.cookie('UART', '', { httpOnly: true, sameSite: 'none', secure: true, maxAge: '-1' });
+  res.cookie('UAAT', '', { httpOnly: true, sameSite: 'none', secure: true, maxAge: '-1' });
+  res.json({ successMsg: 'Successfully logged out' });
 }
 
 
@@ -55,7 +61,9 @@ async function loginController(req, res) {
 
     // create refresh token
     const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
-    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10s' });
+    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    // save refresh token into the DB
+    await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
     /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
@@ -91,10 +99,17 @@ async function signUpController(req, res) {
       user: { id: newUser.insertId }
     };
 
-    jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' }, (err, token) => {
-      if (err) throw err;
-      res.status(201).cookie('token', token, { httpOnly: true, sameSite: 'none', secure: true }).json({ successMsg: 'User successfully created.' });
-    });
+    // create refresh token
+    const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    // save refresh token into the DB
+    await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
+    /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
+    // UART for User Authentication Refresh Token
+    // UAAT for User Authentication Access Token
+    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
+    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: 'none', secure: true });
+    res.json({ successMsg: 'Sign Up Success' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMsg: 'Internal Server Error' });
