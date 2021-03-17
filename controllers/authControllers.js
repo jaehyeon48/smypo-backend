@@ -52,9 +52,11 @@ async function loginController(req, res) {
       user: { id: userInfo[0].userId }
     };
 
-    jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '2h' }, (err, token) => {
+    // create refresh token
+    const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+    jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' }, (err, token) => {
       if (err) throw err;
-      res.status(200).cookie('token', token, { httpOnly: true, sameSite: 'none', secure: true }).json({ successMsg: 'Login success.' });
+      res.status(200).cookie('token', token, { httpOnly: true, sameSite: 'strict', secure: true }).json({ successMsg: 'Login success.' });
     });
   } catch (error) {
     console.log(error);
@@ -85,7 +87,7 @@ async function signUpController(req, res) {
       user: { id: newUser.insertId }
     };
 
-    jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '2h' }, (err, token) => {
+    jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' }, (err, token) => {
       if (err) throw err;
       res.status(201).cookie('token', token, { httpOnly: true, sameSite: 'none', secure: true }).json({ successMsg: 'User successfully created.' });
     });
