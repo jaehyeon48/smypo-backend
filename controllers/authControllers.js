@@ -59,7 +59,7 @@ async function loginController(req, res) {
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
     res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
-    res.cookie('UAAT', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
+    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: 'none', secure: true });
     res.send(200).json({ successMsg: 'Login Success' });
   } catch (error) {
     console.log(error);
