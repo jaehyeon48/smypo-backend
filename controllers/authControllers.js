@@ -54,10 +54,13 @@ async function loginController(req, res) {
 
     // create refresh token
     const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
-    jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '2h' }, (err, token) => {
-      if (err) throw err;
-      res.status(200).cookie('token', token, { httpOnly: true, sameSite: 'strict', secure: true }).json({ successMsg: 'Login success.' });
-    });
+    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
+    // UART for User Authentication Refresh Token
+    // UAAT for User Authentication Access Token
+    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
+    res.cookie('UAAT', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
+    res.send(200).json({ successMsg: 'Login Success' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMsg: 'Internal Server Error' });
