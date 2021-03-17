@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const { response } = require('express');
 const jwt = require('jsonwebtoken');
 
 const pool = require('../database/db');
@@ -60,7 +61,7 @@ async function loginController(req, res) {
     // UAAT for User Authentication Access Token
     res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'none', secure: true });
     res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: 'none', secure: true });
-    res.send(200).json({ successMsg: 'Login Success' });
+    res.json({ successMsg: 'Login Success' });
   } catch (error) {
     console.log(error);
     res.status(500).json({ errorMsg: 'Internal Server Error' });
