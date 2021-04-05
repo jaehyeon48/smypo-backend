@@ -28,7 +28,7 @@ async function authMiddleware(req, res, next) {
         };
         const newAccessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
         /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
-        res.cookie('UAAT', newAccessToken, { httpOnly: true, sameSite: 'strict', secure: true });
+        res.cookie('UAAT', newAccessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
         req.user = decodedRefresh.user;
         next();
       }

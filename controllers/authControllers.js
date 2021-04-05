@@ -1,8 +1,8 @@
 const bcrypt = require('bcryptjs');
 const { response } = require('express');
 const jwt = require('jsonwebtoken');
-
 const pool = require('../database/db');
+require('dotenv').config();
 
 
 // @ROUTE         GET auth
@@ -30,8 +30,8 @@ async function logoutController(req, res) {
   // Remove refresh token from the DB
   await pool.query('DELETE FROM refreshToken WHERE userId = ?', [userId]);
   /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
-  res.cookie('UART', '', { httpOnly: true, sameSite: 'strict', secure: true, maxAge: '-1' });
-  res.cookie('UAAT', '', { httpOnly: true, sameSite: 'strict', secure: true, maxAge: '-1' });
+  res.cookie('UART', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
+  res.cookie('UAAT', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
   res.json({ successMsg: 'Successfully logged out' });
 }
 
@@ -67,8 +67,8 @@ async function loginController(req, res) {
     /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
-    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'strict', secure: true });
-    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: 'strict', secure: true });
+    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
+    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.json({ successMsg: 'Login Success' });
   } catch (error) {
     console.log(error);
@@ -107,8 +107,8 @@ async function signUpController(req, res) {
     /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
-    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: 'strict', secure: true });
-    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: 'strict', secure: true });
+    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
+    res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.json({ successMsg: 'Sign Up Success' });
   } catch (error) {
     console.log(error);
