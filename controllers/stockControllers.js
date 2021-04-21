@@ -14,7 +14,7 @@ async function checkMarketStatus(req, res) {
     const latestTimestamp = marketStatusResponse.data.lastTradeTime;
 
     const minutesDifference = Math.floor((currentTimestamp - latestTimestamp) / 1000 / 60);
-    if (minutesDifference > 1) {
+    if (minutesDifference > 10) {
       return res.status(200).json(false); // false for closed
     }
 
