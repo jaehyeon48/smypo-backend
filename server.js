@@ -10,8 +10,7 @@ const app = express();
 
 // handling CORS
 app.use(cors({
-  origin: /^https?:\/\/www\.smypo\.com*$/,
-  // origin: 'https://localhost:3000',
+  origin: process.env.ORIGIN,
   methods: 'GET,POST,PUT,PATCH,DELETE',
   allowedHeaders: 'Content-Type,X-Requested-With',
   credentials: true,
