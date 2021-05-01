@@ -134,7 +134,7 @@ async function addStock(req, res) {
     const addStockResult = await pool.query(`
       INSERT INTO stock (userId, portfolioId, ticker, price, 
         quantity, transactionType, transactionDate)
-      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
+      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?)`,
       [ticker.toUpperCase(), price, quantity, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
