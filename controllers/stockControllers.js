@@ -135,7 +135,7 @@ async function addStock(req, res) {
       INSERT INTO stock (userId, portfolioId, ticker, companyName, price, 
         quantity, transactionType, transactionDate)
       VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
-      [ticker, companyName, price, quantity, transactionType, transactionDate]);
+      [ticker.toUpperCase(), companyName, price, quantity, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
