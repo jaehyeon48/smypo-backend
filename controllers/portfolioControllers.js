@@ -34,7 +34,7 @@ async function getPortfolioStocks(req, res) {
   const userId = req.user.id;
   const portfolioId = req.params.portfolioId;
   const getStocksQuery = `
-    SELECT stock.ticker, stock.companyName, stock.price, stock.quantity, 
+    SELECT stock.ticker, stock.price, stock.quantity,
     stock.transactionType, stock.transactionDate
     FROM user
       INNER JOIN portfolio
