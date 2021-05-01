@@ -69,22 +69,6 @@ async function getClosePrice(req, res) {
   }
 }
 
-// @ROUTE         GET stock/info/:ticker
-// @DESCRIPTION   Get Information about the company
-// @ACCESS        Private
-async function getCompanyInfo(req, res) {
-  const ticker = req.params.ticker;
-  const apiUrl = `https://cloud.iexapis.com/stable/stock/${ticker}/company?token=${process.env.IEX_CLOUD_API_KEY}`;
-  try {
-    const response = await axios.get(apiUrl);
-
-    return res.status(200).json(response.data);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ errorMsg: 'Internal Server Error' });
-  }
-}
-
 
 // @ROUTE         POST stock
 // @DESCRIPTION   Add New Stock
@@ -229,7 +213,6 @@ module.exports = {
   checkMarketStatus,
   getRealTimePriceAndChange,
   getClosePrice,
-  getCompanyInfo,
   addStock,
   editStock,
   deleteStock,

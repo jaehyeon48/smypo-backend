@@ -7,7 +7,6 @@ const {
   checkMarketStatus,
   getRealTimePriceAndChange,
   getClosePrice,
-  getCompanyInfo,
   addStock,
   editStock,
   deleteStock,
@@ -29,11 +28,6 @@ router.get('/realtime/:ticker', authMiddleware, getRealTimePriceAndChange);
 // @DESCRIPTION   Get Close Price of the Stock
 // @ACCESS        Private
 router.get('/close/:ticker', authMiddleware, getClosePrice);
-
-// @ROUTE         GET stock/info/:ticker
-// @DESCRIPTION   Get Information about the company
-// @ACCESS        Private
-router.get('/info/:ticker', authMiddleware, getCompanyInfo);
 
 // @ROUTE         POST stock
 // @DESCRIPTION   Add New Stock
