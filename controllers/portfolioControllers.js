@@ -41,7 +41,7 @@ async function getPortfolioStocks(req, res) {
         ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId 
       INNER JOIN stock
         ON user.userId = stock.userId AND portfolio.portfolioId = stock.portfolioId
-      ORDER BY stock.ticker, stock.transactionDate, stock.transactionType;`;
+      ORDER BY stock.ticker, stock.transactionType DESC, stock.transactionDate;`;
 
   try {
     if (portfolioId) {
