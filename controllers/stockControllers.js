@@ -168,7 +168,7 @@ async function editStock(req, res) {
 
 
 // @ROUTE         DELETE stock/:stockId
-// @DESCRIPTION   Delete Stock
+// @DESCRIPTION   Delete Stock transaction
 // @ACCESS        Private
 async function deleteStock(req, res) {
   const stockId = req.params.stockId;
@@ -191,15 +191,20 @@ async function deleteStock(req, res) {
 }
 
 // @ROUTE         DELETE stock/:portfolioId/:ticker
-// @DESCRIPTION   Close position
+// @DESCRIPTION   Delete stock quote (entire transaction history)
 // @ACCESS        Private
-async function closePosition(req, res) {
+async function deleteQuote(req, res) {
   const userId = req.user.id;
   const portfolioId = req.params.portfolioId;
   const ticker = req.params.ticker;
 
   try {
-    await pool.query(`DELETE FROM stock WHERE userId = ${userId} AND portfolioId = ${portfolioId} AND ticker = '${ticker}'`);
+    const [stockIdsToDelete] = await pool.query('SELECT stockId FROM stock WHERE userId = ? AND portfolioId = ? AND ticker = ?', [userId, portfolioId, ticker]);
+    // delete every realized stock data if it exists
+    for (const { stockId } of stockIdsToDelete) {
+      await pool.query('DELETE FROM realizedStock WHERE stockId = ?', [stockId]);
+    }
+    await pool.query('DELETE FROM stock WHERE userId = ? AND portfolioId = ? AND ticker = ?', [userId, portfolioId, ticker]);
 
     res.status(200).json({ successMsg: 'Successfully closed the position' });
   } catch (error) {
@@ -216,5 +221,5 @@ module.exports = {
   addStock,
   editStock,
   deleteStock,
-  closePosition
+  deleteQuote
 };

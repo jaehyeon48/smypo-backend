@@ -10,7 +10,7 @@ const {
   addStock,
   editStock,
   deleteStock,
-  closePosition
+  deleteQuote
 } = require('../controllers/stockControllers');
 
 
@@ -42,13 +42,13 @@ router.put('/:stockId', authMiddleware, editStock);
 
 
 // @ROUTE         DELETE stock/:stockId
-// @DESCRIPTION   Delete Stock
+// @DESCRIPTION   Delete Stock transaction
 // @ACCESS        Private
 router.delete('/:stockId', authMiddleware, deleteStock);
 
 // @ROUTE         DELETE stock/:portfolioId/:ticker
-// @DESCRIPTION   Close position
+// @DESCRIPTION   Delete stock quote (entire transaction history)
 // @ACCESS        Private
-router.delete('/:portfolioId/:ticker', authMiddleware, closePosition);
+router.delete('/:portfolioId/:ticker', authMiddleware, deleteQuote);
 
 module.exports = router;
