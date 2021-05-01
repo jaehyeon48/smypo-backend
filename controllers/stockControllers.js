@@ -108,7 +108,7 @@ async function getCompanyInfo(req, res) {
 async function addStock(req, res) {
   const userId = req.user.id;
   const {
-    portfolioId, ticker, companyName, price, quantity,
+    portfolioId, ticker, price, quantity,
     referCash, currentAvgCost, transactionType, transactionDate
   } = req.body;
 
@@ -132,10 +132,10 @@ async function addStock(req, res) {
       }
     }
     const addStockResult = await pool.query(`
-      INSERT INTO stock (userId, portfolioId, ticker, companyName, price, 
+      INSERT INTO stock (userId, portfolioId, ticker, price, 
         quantity, transactionType, transactionDate)
       VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
-      [ticker.toUpperCase(), companyName, price, quantity, transactionType, transactionDate]);
+      [ticker.toUpperCase(), price, quantity, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
