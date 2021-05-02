@@ -92,7 +92,7 @@ async function getStockInfoByTickerGroup(req, res) {
   const portfolioId = req.params.portfolioId;
   const tickerName = req.params.tickerName;
   const getStockQuery = `
-    SELECT stockId, price, quantity, transactionType, transactionDate
+    SELECT stockId, price, quantity, memo, transactionType, transactionDate
     FROM stock
     WHERE ticker = '${tickerName}' AND userId = ${userId} AND portfolioId = ${portfolioId}
     ORDER BY transactionDate, transactionType, quantity
