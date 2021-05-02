@@ -35,7 +35,7 @@ async function getPortfolioStocks(req, res) {
   const portfolioId = req.params.portfolioId;
   const getStocksQuery = `
     SELECT stock.ticker, stock.price, stock.quantity,
-    stock.transactionType, stock.transactionDate
+    stock.transactionType, DATE_ADD(stock.transactionDate, INTERVAL 9 HOUR) AS transactionDate
     FROM user
       INNER JOIN portfolio
         ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId 
@@ -65,7 +65,7 @@ async function getPortfolioCash(req, res) {
   const userId = req.user.id;
   const portfolioId = req.params.portfolioId;
   const getCashQuery = `
-    SELECT cashId, cash.amount, cash.memo, cash.transactionType, cash.transactionDate
+    SELECT cashId, cash.amount, cash.memo, cash.transactionType, DATE_ADD(cash.transactionDate, INTERVAL 9 HOUR) AS transactionDate
     FROM user
 	    INNER JOIN portfolio
 		    ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId
@@ -92,7 +92,7 @@ async function getStockInfoByTickerGroup(req, res) {
   const portfolioId = req.params.portfolioId;
   const tickerName = req.params.tickerName;
   const getStockQuery = `
-    SELECT stockId, price, quantity, memo, transactionType, transactionDate
+    SELECT stockId, price, quantity, memo, transactionType, DATE_ADD(transactionDate, INTERVAL 9 HOUR) AS transactionDate
     FROM stock
     WHERE ticker = '${tickerName}' AND userId = ${userId} AND portfolioId = ${portfolioId}
     ORDER BY transactionDate, transactionType, quantity

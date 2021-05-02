@@ -13,7 +13,6 @@ async function addCash(req, res) {
       INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
       VALUES (?, ?, ?, ?, ?, ?)
     `, [userId, portfolioId, amount, cashMemo, transactionType, transactionDate]);
-
     res.status(201).json({ successMsg: 'Successfully added new cash info.' });
   } catch (error) {
     console.log(error)
