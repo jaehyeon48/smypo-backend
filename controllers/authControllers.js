@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const { response } = require('express');
+const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const pool = require('../database/db');
 require('dotenv').config();
@@ -12,7 +12,7 @@ async function checkAuthController(req, res) {
   const userId = req.user.id;
   try {
     const [userInfo] = await pool.query(`SELECT userId, firstName, lastName, email,
-    avatar, theme, lang, currency FROM user WHERE userId = ?`, [userId]);
+    username, avatar, theme, lang, currency FROM user WHERE userId = ?`, [userId]);
 
     return res.status(200).json(userInfo[0]);
   } catch (err) {
@@ -36,7 +36,7 @@ async function checkAuthOnRouteChgController(req, res) {
 async function logoutController(req, res) {
   const userId = req.user.id;
   // Remove refresh token from the DB
-  await pool.query('DELETE FROM refreshToken WHERE userId = ?', [userId]);
+  // await pool.query('DELETE FROM refreshToken WHERE userId = ?', [userId]);
   /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
   // not use refresh token for now
   // res.cookie('UART', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
@@ -49,19 +49,26 @@ async function logoutController(req, res) {
 // @DESCRIPTION   Login user
 // @ACCESS        Public
 async function loginController(req, res) {
-  const { email, password } = req.body;
+  // 'userEnteredId' could be either email or username.
+  const { userEnteredId, password } = req.body;
 
+  let query;
   try {
-    const [userInfo] = await pool.query(`SELECT userId, password FROM user WHERE email = ?`, [email]);
+    if (validator.isEmail(userEnteredId)) { // if the user logged in with email
+      query = `SELECT userId, password FROM user WHERE UPPER(email) = ?`;
+    } else { // if the user logged in with username
+      query = `SELECT userId, password FROM user WHERE UPPER(username) = ?`;
+    }
 
+    const [userInfo] = await pool.query(query, [userEnteredId.toUpperCase()]);
     if (userInfo[0] === undefined) {
-      return res.status(400).json({ errorMsg: 'Email or password is invalid.' });
+      return res.status(400).json({ errorMsg: 'Email (or username) or password is invalid.' });
     }
 
     const isPasswordMatch = await bcrypt.compare(password, userInfo[0].password);
 
     if (!isPasswordMatch) {
-      return res.status(400).json({ errorMsg: 'Email or password is invalid.' });
+      return res.status(400).json({ errorMsg: 'Email (or username) or password is invalid.' });
     }
 
     const jwtPayload = {
@@ -91,19 +98,28 @@ async function loginController(req, res) {
 // @DESCRIPTION   Register user
 // @ACCESS        Public
 async function signUpController(req, res) {
-  const { firstName, lastName, email, password } = req.body;
+  const { firstName, lastName, email, username, password } = req.body;
 
   try {
-    const checkExistUser = await pool.query(`SELECT userId FROM user WHERE email = ?`, [email]);
+    const [doesUserEmailExists] = await pool.query(`SELECT userId FROM user WHERE UPPER(email)
+     = ?`, [email.toUpperCase()]);
 
-    if (checkExistUser[0].length !== 0) {
+    if (doesUserEmailExists.length !== 0) {
+      return res.status(400).json({ errorMsg: 'User already exists!' });
+    }
+
+    const [doesUsernameExists] = await pool.query(`SELECT username FROM user WHERE UPPER(username) = ?`, [username.toUpperCase()]);
+
+    if (doesUsernameExists.length !== 0) {
       return res.status(400).json({ errorMsg: 'User already exists!' });
     }
 
     const encryptedPassword = await bcrypt.hash(password, 10);
 
-    const [newUser] = await pool.query(`INSERT INTO user (firstName, lastName, email, password)
-      VALUES (?, ?, ?, ?)` , [firstName, lastName, email, encryptedPassword]);
+    const [newUser] = await pool.query(`
+      INSERT INTO user (firstName, lastName, email, username, password) 
+      VALUES (?, ?, ?, ?, ?)` , [firstName, lastName, email, username, encryptedPassword]
+    );
 
     const jwtPayload = {
       user: { id: newUser.insertId }
