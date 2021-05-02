@@ -6,12 +6,13 @@ const pool = require('../database/db');
 // @ACCESS        Private
 async function addCash(req, res) {
   const userId = req.user.id;
-  const { portfolioId, amount, transactionType, transactionDate } = req.body;
-  const addCashQuery = `
-    INSERT INTO cash (userId, portfolioId, amount, transactionType, transactionDate)
-    VALUES (${userId}, ${portfolioId}, ${amount}, '${transactionType}', '${transactionDate}')`;
+  const { portfolioId, amount, cashMemo, transactionType, transactionDate } = req.body;
+
   try {
-    await pool.query(addCashQuery);
+    await pool.query(`
+      INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `, [userId, portfolioId, amount, cashMemo, transactionType, transactionDate]);
 
     res.status(201).json({ successMsg: 'Successfully added new cash info.' });
   } catch (error) {
