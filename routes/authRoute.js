@@ -3,6 +3,7 @@ const router = express.Router();
 
 const {
   checkAuthController,
+  checkAuthOnRouteChgController,
   logoutController,
   loginController,
   signUpController
@@ -14,6 +15,12 @@ const authMiddleware = require('../middlewares/authMiddleware');
 // @DESCRIPTION   check authentication
 // @ACCESS        Private
 router.get('/', authMiddleware, checkAuthController);
+
+
+// @ROUTE         GET auth/route-change
+// @DESCRIPTION   check authentication on every route change
+// @ACCESS        Private
+router.get('/route-change', authMiddleware, checkAuthOnRouteChgController);
 
 
 // @ROUTE         GET auth/logout

@@ -22,6 +22,14 @@ async function checkAuthController(req, res) {
 }
 
 
+// @ROUTE         GET auth/route-change
+// @DESCRIPTION   check authentication on every route change
+// @ACCESS        Private
+async function checkAuthOnRouteChgController(req, res) {
+  return res.send('success');
+}
+
+
 // @ROUTE         GET auth/logout
 // @DESCRIPTION   Logout the user
 // @ACCESS        Private
@@ -30,7 +38,8 @@ async function logoutController(req, res) {
   // Remove refresh token from the DB
   await pool.query('DELETE FROM refreshToken WHERE userId = ?', [userId]);
   /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
-  res.cookie('UART', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
+  // not use refresh token for now
+  // res.cookie('UART', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
   res.cookie('UAAT', '', { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true, maxAge: '-1' });
   res.json({ successMsg: 'Successfully logged out' });
 }
@@ -59,15 +68,16 @@ async function loginController(req, res) {
       user: { id: userInfo[0].userId }
     };
 
+    // not use refresh token for now
     // create refresh token
-    const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
-    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    // const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
     // save refresh token into the DB
-    await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
+    // await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
     /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
-    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
+    // res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.json({ successMsg: 'Login Success' });
   } catch (error) {
@@ -99,15 +109,16 @@ async function signUpController(req, res) {
       user: { id: newUser.insertId }
     };
 
+    // not use refresh token for now
     // create refresh token
-    const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
-    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '10m' });
+    // const refreshToken = jwt.sign(jwtPayload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+    const accessToken = jwt.sign(jwtPayload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '30m' });
     // save refresh token into the DB
-    await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
+    // await pool.query('INSERT INTO refreshToken(userId, token) VALUES(?, ?)', [userInfo[0].userId, refreshToken]);
     /* !!!!!!!!!!!!!!! sameSite should be 'strict' in production mode. !!!!!!!!!!!!!!! */
     // UART for User Authentication Refresh Token
     // UAAT for User Authentication Access Token
-    res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
+    // res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.json({ successMsg: 'Sign Up Success' });
   } catch (error) {
@@ -118,6 +129,7 @@ async function signUpController(req, res) {
 
 module.exports = {
   checkAuthController,
+  checkAuthOnRouteChgController,
   logoutController,
   loginController,
   signUpController,
