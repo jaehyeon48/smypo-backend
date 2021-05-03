@@ -22,7 +22,7 @@ async function checkAuthController(req, res) {
 }
 
 
-// @ROUTE         GET auth/availability/username
+// @ROUTE         POST auth/availability/username
 // @DESCRIPTION   check the availability of a username when the new user is signing in
 // @ACCESS        Public
 async function checkUsernameAvailability(req, res) {
@@ -44,7 +44,7 @@ async function checkUsernameAvailability(req, res) {
 
 
 
-// @ROUTE         GET auth/availability/email
+// @ROUTE         POST auth/availability/email
 // @DESCRIPTION   check the availability of a email when the new user is signing in
 // @ACCESS        Public
 async function checkEmailAvailability(req, res) {
