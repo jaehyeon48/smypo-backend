@@ -3,6 +3,8 @@ const router = express.Router();
 
 const {
   checkAuthController,
+  checkUsernameAvailability,
+  checkEmailAvailability,
   checkAuthOnRouteChgController,
   logoutController,
   loginController,
@@ -15,6 +17,18 @@ const authMiddleware = require('../middlewares/authMiddleware');
 // @DESCRIPTION   check authentication
 // @ACCESS        Private
 router.get('/', authMiddleware, checkAuthController);
+
+
+// @ROUTE         GET auth/availability/username
+// @DESCRIPTION   check the availability of a username when the new user is signing in
+// @ACCESS        Public
+router.get('/availability/username', checkUsernameAvailability);
+
+
+// @ROUTE         GET auth/availability/email
+// @DESCRIPTION   check the availability of a email when the new user is signing in
+// @ACCESS        Public
+router.get('/availability/email', checkEmailAvailability);
 
 
 // @ROUTE         GET auth/route-change

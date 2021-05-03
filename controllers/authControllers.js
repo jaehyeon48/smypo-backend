@@ -22,6 +22,48 @@ async function checkAuthController(req, res) {
 }
 
 
+// @ROUTE         GET auth/availability/username
+// @DESCRIPTION   check the availability of a username when the new user is signing in
+// @ACCESS        Public
+async function checkUsernameAvailability(req, res) {
+  const { username } = req.body;
+  try {
+    const [availabilityRes] = await pool.query('SELECT username FROM user WHERE UPPER(username) = ?', [username]);
+
+    if (availabilityRes[0] === undefined) { // if the username does not exist
+      return res.status(200).json(0);
+    } else { // if the username exists
+      return res.status(200).json(-1);
+    }
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+  }
+}
+
+
+
+// @ROUTE         GET auth/availability/email
+// @DESCRIPTION   check the availability of a email when the new user is signing in
+// @ACCESS        Public
+async function checkEmailAvailability(req, res) {
+  const { email } = req.body;
+  try {
+    const [availabilityRes] = await pool.query('SELECT email FROM user WHERE UPPER(email) = ?', [email]);
+
+    if (availabilityRes[0] === undefined) { // if the email does not exist
+      return res.status(200).json(0);
+    } else { // if the email exists
+      return res.status(200).json(-1);
+    }
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+  }
+}
+
 // @ROUTE         GET auth/route-change
 // @DESCRIPTION   check authentication on every route change
 // @ACCESS        Private
@@ -145,6 +187,8 @@ async function signUpController(req, res) {
 
 module.exports = {
   checkAuthController,
+  checkUsernameAvailability,
+  checkEmailAvailability,
   checkAuthOnRouteChgController,
   logoutController,
   loginController,
