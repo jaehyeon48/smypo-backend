@@ -84,19 +84,19 @@ async function addStock(req, res) {
     if (referCash) {
       if (transactionType === 'buy') {
         const cashToWithdraw = parseFloat((price * quantity).toFixed(2));
-        const cashNote = `Purchased ${ticker} @${price} x ${quantity} shares`
+        const cashMemo = `Purchased ${ticker} @${price} x ${quantity} shares`
         await pool.query(`
-        INSERT INTO cash (userId, portfolioId, amount, note, transactionType, transactionDate)
+        INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
         VALUES (${userId}, ${portfolioId}, ?, ?, 'purchased', ?)`,
-          [cashToWithdraw, cashNote, transactionDate]);
+          [cashToWithdraw, cashMemo, transactionDate]);
       }
       else if (transactionType === 'sell') {
         const cashToDeposit = parseFloat((price * quantity).toFixed(2));
-        const cashNote = `Sold ${ticker} @${price} x ${quantity} shares`;
+        const cashMemo = `Sold ${ticker} @${price} x ${quantity} shares`;
         await pool.query(`
-        INSERT INTO cash (userId, portfolioId, amount, note, transactionType, transactionDate)
+        INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
         VALUES (${userId}, ${portfolioId}, ?, ?, 'sold', ?)`,
-          [cashToDeposit, cashNote, transactionDate]);
+          [cashToDeposit, cashMemo, transactionDate]);
       }
     }
     const addStockResult = await pool.query(`
