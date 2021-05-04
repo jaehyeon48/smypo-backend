@@ -76,7 +76,7 @@ async function getClosePrice(req, res) {
 async function addStock(req, res) {
   const userId = req.user.id;
   const {
-    portfolioId, ticker, price, quantity,
+    portfolioId, ticker, price, quantity, stockMemo,
     referCash, currentAvgCost, transactionType, transactionDate
   } = req.body;
 
@@ -100,10 +100,10 @@ async function addStock(req, res) {
       }
     }
     const addStockResult = await pool.query(`
-      INSERT INTO stock (userId, portfolioId, ticker, price, 
-        quantity, transactionType, transactionDate)
-      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?)`,
-      [ticker.toUpperCase(), price, quantity, transactionType, transactionDate]);
+      INSERT INTO stock (userId, portfolioId, ticker, price,
+        quantity, memo, transactionType, transactionDate)
+      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
+      [ticker.toUpperCase(), price, quantity, stockMemo, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
@@ -127,13 +127,8 @@ async function addStock(req, res) {
 async function editStock(req, res) {
   const userId = req.user.id;
   const stockId = req.params.stockId;
-  const { price, quantity, transactionType, transactionDate, currentAvgCost } = req.body;
-
-  const editStockQuery = `
-    UPDATE stock
-    SET price = ${price}, quantity = ${quantity}, transactionType = '${transactionType}',
-      transactionDate = '${transactionDate}'
-    WHERE stockId = ${stockId}`;
+  const { price, quantity, stockMemo, transactionType,
+    transactionDate, currentAvgCost } = req.body;
 
   try {
     const [userIdRow] = await pool.query(`SELECT userId FROM stock WHERE stockId = ${stockId}`);
@@ -143,7 +138,6 @@ async function editStock(req, res) {
     }
 
     const [previousTrTypeRow] = await pool.query(`SELECT transactionType FROM stock WHERE stockId = ${stockId}`);
-
 
     // insert new realized return info
     if (previousTrTypeRow[0].transactionType === 'buy' && transactionType === 'sell') {
@@ -157,7 +151,10 @@ async function editStock(req, res) {
       await pool.query(`DELETE FROM realizedStock WHERE stockId = ${stockId}`);
     }
 
-    await pool.query(editStockQuery);
+    await pool.query(`
+    UPDATE stock
+    SET price = ?, quantity = ?, memo = ?, transactionType = ?, transactionDate = ?
+    WHERE stockId = ?`, [price, quantity, stockMemo, transactionType, transactionDate, stockId]);
 
     res.status(200).json({ successMsg: 'Successfully edited the stock info' });
   } catch (error) {
