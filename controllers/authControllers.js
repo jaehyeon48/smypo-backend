@@ -104,13 +104,13 @@ async function loginController(req, res) {
 
     const [userInfo] = await pool.query(query, [userEnteredId.toUpperCase()]);
     if (userInfo[0] === undefined) {
-      return res.status(400).json({ errorMsg: 'Email (or username) or password is invalid.' });
+      return res.status(200).json([-1]);
     }
 
     const isPasswordMatch = await bcrypt.compare(password, userInfo[0].password);
 
     if (!isPasswordMatch) {
-      return res.status(400).json({ errorMsg: 'Email (or username) or password is invalid.' });
+      return res.status(200).json([-1]);
     }
 
     const jwtPayload = {
@@ -128,10 +128,10 @@ async function loginController(req, res) {
     // UAAT for User Authentication Access Token
     // res.cookie('UART', refreshToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
     res.cookie('UAAT', accessToken, { httpOnly: true, sameSite: process.env.SAME_SITE, secure: true });
-    res.json({ successMsg: 'Login Success' });
+    res.status(200).json([0]);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ errorMsg: 'Internal Server Error' });
+    res.status(200).json([-2]);
   }
 }
 
