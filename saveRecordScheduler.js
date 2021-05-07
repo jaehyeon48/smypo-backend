@@ -52,7 +52,7 @@ async function checkMarketWasOpened() {
     const latestTimestamp = marketStatusResponse.data.lastTradeTime;
 
     const minutesDifference = Math.floor((currentTimestamp - latestTimestamp) / 1000 / 60);
-    if (minutesDifference < 10000) {
+    if (minutesDifference < 40) {
       return true;
     }
     else {
