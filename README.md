@@ -7,7 +7,7 @@
 - ⚠️ Currently, only support US stock market · US dollar investment and english.
 - Will update portfolio sharing community soon.
 
-- This site's frontent project is here: [smypo-frontend](https://github.com/jaehyeon48/smypo-frotend)
+- This site's frontent project is here: [smypo-frontend](https://github.com/jaehyeon48/smypo-frontend)
 
 ## Tech Stack
 
