@@ -42,7 +42,7 @@ async function saveRecordScheduler() {
 // Check if the market 'was' opened for the day by comparing timestamp between current timestamp
 // and IEX api's timestamp and if the difference between the two is less than 35 minutes,
 // return true. The reason of 35 minutes is the schedule is running at 8:30PM UTC (which is 30 minutes
-// after the market's official closing time) plus 5 minutes of margin in case of a latency.
+// after the market's official closing time) plus 10 minutes of margin in case of a latency.
 async function checkMarketWasOpened() {
   const apiUrl = `https://cloud.iexapis.com/stable/stock/aapl/quote?token=${process.env.IEX_CLOUD_API_KEY}`;
 
@@ -52,7 +52,7 @@ async function checkMarketWasOpened() {
     const latestTimestamp = marketStatusResponse.data.lastTradeTime;
 
     const minutesDifference = Math.floor((currentTimestamp - latestTimestamp) / 1000 / 60);
-    if (minutesDifference < 35) {
+    if (minutesDifference < 10000) {
       return true;
     }
     else {
@@ -91,16 +91,16 @@ async function getAllPortfolios() {
 
 async function getStockData(userId, portfolioId) {
   try {
-    const getStocksQuery = `
-    SELECT stock.ticker, stock.companyName, stock.price, stock.quantity, 
-    stock.transactionType, stock.transactionDate
-    FROM user
-      INNER JOIN portfolio
-        ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId 
-      INNER JOIN stock
-        ON user.userId = stock.userId AND portfolio.portfolioId = stock.portfolioId
-      ORDER BY stock.ticker, stock.transactionDate, stock.transactionType;`;
-    const [stocksRow] = await pool.query(getStocksQuery);
+    const [stocksRow] = await pool.query(`
+      SELECT stock.ticker, stock.price, stock.quantity,
+      stock.transactionType, DATE_ADD(stock.transactionDate, INTERVAL 9 HOUR) AS transactionDate
+      FROM user
+        INNER JOIN portfolio
+          ON user.userId = ? AND portfolio.portfolioId = ? AND user.userId = portfolio.userId 
+        INNER JOIN stock
+          ON user.userId = stock.userId AND portfolio.portfolioId = stock.portfolioId
+        ORDER BY stock.ticker, stock.transactionType DESC, stock.transactionDate
+    `, [userId, portfolioId]);
     return stocksRow;
   } catch (error) {
     console.error(error);
@@ -136,19 +136,18 @@ function groupStocksByTickerName(stocks) {
   return stockGroup;
 };
 
-async function organizeGroupedStocks(ticker, shareInfo) {
-  shareInfo.sort((a, b) => (a.transactionType < b.transactionType) ? 1 : ((b.transactionType < a.transactionType) ? -1 : 0));
+// 각 종목별 평균 매수가, 보유량 등을 계산
+const organizeGroupedStocks = async (ticker, stockData) => {
   const share = {};
   let totalCost = 0;
   let totalQty = 0;
   share.ticker = ticker;
 
   let sellQty = 0;
-  shareInfo.forEach(share => {
+  stockData.forEach(share => {
     if (share.transactionType === 'sell') {
       sellQty += share.quantity;
-    }
-    else if (share.transactionType === 'buy') {
+    } else { // share.transactionType === 'buy'
       const shareQty = share.quantity - sellQty;
       if (shareQty > 0) {
         totalCost += share.price * shareQty;
@@ -162,9 +161,8 @@ async function organizeGroupedStocks(ticker, shareInfo) {
     }
   });
 
-  share.avgCost = Number((totalQty <= 0 ? 0 : (totalCost / totalQty).toFixed(2)));
+  share.avgCost = totalQty > 0 ? parseFloat((totalCost / totalQty).toFixed(2)) : 0;
   share.quantity = (totalQty <= 0 ? 0 : totalQty);
-
   share.dailyReturn = null;
   share.overallReturn = null;
   return share;
@@ -206,18 +204,16 @@ async function getClosePriceData(ticker) {
 
 // get cash data
 async function getTotalCash(userId, portfolioId) {
-  const getCashQuery = `
-    SELECT cashId, cash.amount, cash.transactionType, cash.transactionDate
-    FROM user
-	    INNER JOIN portfolio
-		    ON user.userId = ${userId} AND portfolio.portfolioId = ${portfolioId} AND user.userId = portfolio.userId
-	    INNER JOIN cash
-		    ON user.userId = cash.userId AND portfolio.portfolioId = cash.portfolioId
-	    ORDER BY transactionDate;
-  `;
-
   try {
-    const [cashRow] = await pool.query(getCashQuery);
+    const [cashRow] = await pool.query(`
+      SELECT cashId, cash.amount, cash.memo, cash.transactionType, DATE_ADD(cash.transactionDate, INTERVAL 9 HOUR) AS transactionDate
+      FROM user
+	      INNER JOIN portfolio
+		      ON user.userId = ? AND portfolio.portfolioId = ? AND user.userId = portfolio.userId
+	      INNER JOIN cash
+		      ON user.userId = cash.userId AND portfolio.portfolioId = cash.portfolioId
+	      ORDER BY transactionDate
+    `, [userId, portfolioId]);
     return calculateTotalCashAmount(cashRow);
   } catch (error) {
     console.error(error);
