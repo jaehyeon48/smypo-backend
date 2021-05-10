@@ -21,8 +21,8 @@ async function saveRecordScheduler() {
       usersValueData.push({
         userId,
         portfolioId,
-        dailyReturn: portfolioValueData.dailyReturn,
-        totalValue: parseFloat((portfolioValueData.overallReturn + totalCash).toFixed(2))
+        dailyReturn: portfolioValueData.dailyReturn.toFixed(2),
+        totalValue: (portfolioValueData.overallReturn + totalCash).toFixed(2)
       });
 
     }
