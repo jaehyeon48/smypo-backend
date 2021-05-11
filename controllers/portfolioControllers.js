@@ -277,9 +277,11 @@ async function deletePortfolio(req, res) {
       if (userPortfolioRow[0]) {
         await pool.query(`INSERT INTO defaultPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
       }
-    }
 
-    res.status(200).json({ successMsg: 'The portfolio successfully deleted.' });
+      return res.status(200).json(userPortfolioRow[0].portfolioId);
+    } else {
+      return res.status(200).json(-1);
+    }
   } catch (error) {
     console.log(error)
     return res.status(500).json({ errorMsg: 'Internal Server Error' });
