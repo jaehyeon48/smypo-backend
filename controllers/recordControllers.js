@@ -31,7 +31,10 @@ async function addNewRecord(req, res) {
   const { dailyReturn, totalValue, recordDate } = req.body;
 
   try {
-    await pool.query(`INSERT INTO dailyRecords (userId, portfolioId, dailyReturn, totalValue, recordDate) VALUES (${userId}, ${portfolioId}, ${dailyReturn}, ${totalValue}, '${recordDate}')`);
+    await pool.query(`
+    INSERT INTO dailyRecords (userId, portfolioId, dailyReturn, totalValue, recordDate) 
+    VALUES (?, ?, ?, ?, ?)`,
+      [userId, portfolioId, dailyReturn, totalValue, recordDate]);
     return res.status(201).json({ successMsg: 'Daily record successfully added.' });
   } catch (error) {
     console.error(error);
@@ -43,8 +46,8 @@ async function deleteUsersRecords(req, res) {
   const userId = req.user.id;
 
   try {
-    await pool.query(`DELETE FROM dailyRecords WHERE userId = ${userId}`);
-    return res.status(200).json({ successMsg: 'Deleted all of user\'s records successfully.' });
+    await pool.query('DELETE FROM dailyRecords WHERE userId = ?', [userId]);
+    return res.status(200).json({ successMsg: "Deleted all of user's records successfully." });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ errorMsg: 'Internal Server Error' });

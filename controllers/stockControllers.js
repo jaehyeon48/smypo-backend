@@ -87,30 +87,30 @@ async function addStock(req, res) {
         const cashMemo = `Purchased ${ticker} @${price} x ${quantity} shares`
         await pool.query(`
         INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
-        VALUES (${userId}, ${portfolioId}, ?, ?, 'purchased', ?)`,
-          [cashToWithdraw, cashMemo, transactionDate]);
+        VALUES (?, ?, ?, ?, 'purchased', ?)`,
+          [userId, portfolioId, cashToWithdraw, cashMemo, transactionDate]);
       }
       else if (transactionType === 'sell') {
         const cashToDeposit = parseFloat((price * quantity).toFixed(2));
         const cashMemo = `Sold ${ticker} @${price} x ${quantity} shares`;
         await pool.query(`
         INSERT INTO cash (userId, portfolioId, amount, memo, transactionType, transactionDate)
-        VALUES (${userId}, ${portfolioId}, ?, ?, 'sold', ?)`,
-          [cashToDeposit, cashMemo, transactionDate]);
+        VALUES (?, ?, ?, ?, 'sold', ?)`,
+          [userId, portfolioId, cashToDeposit, cashMemo, transactionDate]);
       }
     }
     const addStockResult = await pool.query(`
       INSERT INTO stock (userId, portfolioId, ticker, price,
         quantity, memo, transactionType, transactionDate)
-      VALUES (${userId}, ${portfolioId}, ?, ?, ?, ?, ?, ?)`,
-      [ticker.toUpperCase(), price, quantity, stockMemo, transactionType, transactionDate]);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, portfolioId, ticker.toUpperCase(), price, quantity, stockMemo, transactionType, transactionDate]);
 
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
       await pool.query(`
         INSERT INTO realizedStock (stockId, avgCost)
-        VALUES (${insertedStockId}, ${currentAvgCost})
-      `);
+        VALUES (?, ?)
+      `, [insertedStockId, currentAvgCost]);
     }
 
     return res.status(201).json({ successMsg: 'Stock successfully added.' });
@@ -131,24 +131,24 @@ async function editStock(req, res) {
     transactionDate, currentAvgCost } = req.body;
 
   try {
-    const [userIdRow] = await pool.query(`SELECT userId FROM stock WHERE stockId = ${stockId}`);
+    const [userIdRow] = await pool.query('SELECT userId FROM stock WHERE stockId = ?', [stockId]);
 
     if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this stock info.' });
     }
 
-    const [previousTrTypeRow] = await pool.query(`SELECT transactionType FROM stock WHERE stockId = ${stockId}`);
+    const [previousTrTypeRow] = await pool.query('SELECT transactionType FROM stock WHERE stockId = ?', [stockId]);
 
     // insert new realized return info
     if (previousTrTypeRow[0].transactionType === 'buy' && transactionType === 'sell') {
       await pool.query(`
         INSERT INTO realizedStock (stockId, avgCost)
-        VALUES (${stockId}, ${currentAvgCost})
-      `);
+        VALUES (?, ?)
+      `, [stockId, currentAvgCost]);
     }
     // delete realized return info
     else if (previousTrTypeRow[0].transactionType === 'sell' && transactionType === 'buy') {
-      await pool.query(`DELETE FROM realizedStock WHERE stockId = ${stockId}`);
+      await pool.query(`DELETE FROM realizedStock WHERE stockId = ?`, [stockId]);
     }
 
     await pool.query(`
@@ -171,14 +171,14 @@ async function deleteStock(req, res) {
   const stockId = req.params.stockId;
   const userId = req.user.id;
   try {
-    const [userIdRow] = await pool.query(`SELECT userId FROM stock WHERE stockId = ${stockId}`);
+    const [userIdRow] = await pool.query('SELECT userId FROM stock WHERE stockId = ?', [stockId]);
 
     if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this stock info.' });
     }
 
-    await pool.query(`DELETE FROM realizedStock WHERE stockId = ${stockId}`);
-    await pool.query(`DELETE FROM stock WHERE stockId = ${stockId}`);
+    await pool.query('DELETE FROM realizedStock WHERE stockId = ?', [stockId]);
+    await pool.query('DELETE FROM stock WHERE stockId = ?', [stockId]);
 
     res.status(200).json({ successMsg: 'Successfully deleted the stock' });
   } catch (error) {
@@ -196,7 +196,11 @@ async function deleteQuote(req, res) {
   const ticker = req.params.ticker;
 
   try {
-    const [stockIdsToDelete] = await pool.query('SELECT stockId FROM stock WHERE userId = ? AND portfolioId = ? AND ticker = ?', [userId, portfolioId, ticker]);
+    const [stockIdsToDelete] = await pool.query(`
+    SELECT stockId 
+    FROM stock
+    WHERE userId = ? AND portfolioId = ? AND ticker = ?`,
+      [userId, portfolioId, ticker]);
     // delete every realized stock data if it exists
     for (const { stockId } of stockIdsToDelete) {
       await pool.query('DELETE FROM realizedStock WHERE stockId = ?', [stockId]);

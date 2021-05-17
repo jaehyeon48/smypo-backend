@@ -157,13 +157,13 @@ async function getRealizedStocks(req, res) {
       SELECT stock.stockId, stock.price, stock.quantity, stock.ticker, realizedStock.avgCost
       FROM stock
         INNER JOIN user
-          ON stock.userId = ${userId} AND stock.userId = user.userId 
+          ON stock.userId = ? AND stock.userId = user.userId 
         INNER JOIN portfolio
-          ON stock.portfolioId = ${portfolioId} AND stock.portfolioId = portfolio.portfolioId
+          ON stock.portfolioId = ? AND stock.portfolioId = portfolio.portfolioId
         INNER JOIN realizedStock
           ON stock.stockId = realizedStock.stockId
         ORDER BY ticker asc;
-    `);
+    `, [userId, portfolioId]);
     return res.status(200).json(realizedStocks);
   } catch (error) {
     console.error(error);
@@ -180,13 +180,13 @@ async function createPortfolio(req, res) {
   const { portfolioName, privacy } = req.body;
   try {
     // check if the user does not have any portfolios
-    const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM defaultPortfolio WHERE userId = ${userId}`);
+    const [isNotFirstlyCreated] = await pool.query(`SELECT portfolioId FROM defaultPortfolio WHERE userId = ?`, [userId]);
 
-    const [newPortfolio] = await pool.query(`INSERT INTO portfolio (portfolioName, userId, privacy) VALUES (?, ${userId},'${privacy}')`, [portfolioName]);
+    const [newPortfolio] = await pool.query(`INSERT INTO portfolio (portfolioName, userId, privacy) VALUES (?, ?, ?)`, [portfolioName, userId, privacy]);
 
     // if the portfolio is firstly created one, select the portfolio.
     if (!isNotFirstlyCreated[0]) {
-      await pool.query(`INSERT INTO defaultPortfolio VALUES (${newPortfolio.insertId}, ${userId})`);
+      await pool.query('INSERT INTO defaultPortfolio VALUES (?, ?)', [newPortfolio.insertId, userId]);
     }
 
     return res.status(201).json({ successMsg: 'New portfolio created' });
@@ -204,8 +204,8 @@ async function selectPortfolio(req, res) {
   const { portfolioId } = req.body;
   try {
     // delete a previous default portfolio
-    await pool.query(`DELETE FROM defaultPortfolio WHERE userId = ${userId}`);
-    await pool.query(`INSERT INTO defaultPortfolio VALUES (${portfolioId}, ${userId})`);
+    await pool.query('DELETE FROM defaultPortfolio WHERE userId = ?', [userId]);
+    await pool.query('INSERT INTO defaultPortfolio VALUES (?, ?)', [portfolioId, userId]);
 
     return res.status(201).json({ defaultPortfolioId: portfolioId });
   } catch (error) {
@@ -223,14 +223,14 @@ async function editPortfolioName(req, res) {
   const { newPortfolioName, newPortfolioPrivacy } = req.body;
   const portfolioId = req.params.portfolioId;
   try {
-    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    const [userIdRow] = await pool.query('SELECT userId FROM portfolio WHERE portfolioId = ?', [portfolioId]);
 
     if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot edit this portfolio.' });
     }
 
-    await pool.query(`UPDATE portfolio SET portfolioName = ?, privacy = ? WHERE portfolioId = ${portfolioId}`,
-      [newPortfolioName, newPortfolioPrivacy]);
+    await pool.query(`UPDATE portfolio SET portfolioName = ?, privacy = ? WHERE portfolioId = ?`,
+      [newPortfolioName, newPortfolioPrivacy, portfolioId]);
 
     res.status(200).json({ successMsg: 'Successfully changed portfolio.' });
   } catch (error) {
@@ -248,34 +248,34 @@ async function deletePortfolio(req, res) {
   const portfolioId = req.params.portfolioId;
 
   try {
-    const [userIdRow] = await pool.query(`SELECT userId FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    const [userIdRow] = await pool.query('SELECT userId FROM portfolio WHERE portfolioId = ?', [portfolioId]);
 
     if (userId !== userIdRow[0].userId) {
       return res.status(403).json({ errorMsg: 'Wrong access: You cannot delete this portfolio.' });
     }
 
-    const [isDefaultOne] = await pool.query(`SELECT portfolioId FROM defaultPortfolio WHERE portfolioId = ${portfolioId}`);
+    const [isDefaultOne] = await pool.query('SELECT portfolioId FROM defaultPortfolio WHERE portfolioId = ?', [portfolioId]);
 
-    const [stocksInThePortfolio] = await pool.query(`SELECT stockId FROM stock WHERE userId = ${userId} AND portfolioId = ${portfolioId}`);
+    const [stocksInThePortfolio] = await pool.query('SELECT stockId FROM stock WHERE userId = ? AND portfolioId = ?', [userId, portfolioId]);
 
     // delete every realized stock data
     for (const stock of stocksInThePortfolio) {
-      await pool.query(`DELETE FROM realizedStock WHERE stockId = ${stock.stockId}`);
+      await pool.query('DELETE FROM realizedStock WHERE stockId = ?', [stock.stockId]);
     }
 
-    await pool.query(`DELETE FROM dailyRecord WHERE portfolioId = ${portfolioId}`);
-    await pool.query(`DELETE FROM cash WHERE portfolioId = ${portfolioId}`);
-    await pool.query(`DELETE FROM defaultPortfolio WHERE portfolioId = ${portfolioId}`)
-    await pool.query(`DELETE FROM stock WHERE portfolioId = ${portfolioId}`);
-    await pool.query(`DELETE FROM portfolio WHERE portfolioId = ${portfolioId}`);
+    await pool.query('DELETE FROM dailyRecord WHERE portfolioId = ?', [portfolioId]);
+    await pool.query('DELETE FROM cash WHERE portfolioId = ?', [portfolioId]);
+    await pool.query('DELETE FROM defaultPortfolio WHERE portfolioId = ?', [portfolioId])
+    await pool.query('DELETE FROM stock WHERE portfolioId = ?', [portfolioId]);
+    await pool.query('DELETE FROM portfolio WHERE portfolioId = ?', [portfolioId]);
 
 
     // if the portfolio is default one, select another portfolio if there exists other portfolios.
     if (isDefaultOne[0]) {
-      const [userPortfolioRow] = await pool.query(`SELECT portfolioId FROM portfolio WHERE userId = ${userId}`);
+      const [userPortfolioRow] = await pool.query('SELECT portfolioId FROM portfolio WHERE userId = ?', [userId]);
 
       if (userPortfolioRow[0]) {
-        await pool.query(`INSERT INTO defaultPortfolio VALUES (${userPortfolioRow[0].portfolioId}, ${userId})`);
+        await pool.query('INSERT INTO defaultPortfolio VALUES (?, ?)', [userPortfolioRow[0].portfolioId, userId]);
       }
 
       return res.status(200).json(userPortfolioRow[0].portfolioId);

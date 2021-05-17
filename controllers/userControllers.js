@@ -17,7 +17,7 @@ async function getAvatar(req, res) {
   const userId = req.user.id;
 
   try {
-    const [userAvatarRow] = await pool.query(`SELECT avatar FROM user WHERE userId = ${userId}`);
+    const [userAvatarRow] = await pool.query('SELECT avatar FROM user WHERE userId = ?', [userId]);
     return res.status(200).json({ avatar: userAvatarRow[0].avatar });
   } catch (error) {
     console.log(error);
@@ -38,13 +38,13 @@ async function uploadAvatar(req, res) {
   };
   try {
     const avatarFileName = `${uuidv4()}.${MIME_TYPE_MAP[req.file.mimetype]}`;
-    const [previousFile] = await pool.query(`SELECT avatar FROM user WHERE userId = ${userId}`);
+    const [previousFile] = await pool.query('SELECT avatar FROM user WHERE userId = ?', [userId]);
     if (previousFile[0].avatar) {
       deleteAvatarFromS3(previousFile[0].avatar);
       console.log(`file ${previousFile[0].avatar} was deleted!`);
     };
 
-    await pool.query(`UPDATE user SET avatar = '${avatarFileName}' WHERE userId = ${userId}`);
+    await pool.query(`UPDATE user SET avatar = ? WHERE userId = ?`, [avatarFileName, userId]);
     uploadAvatarToS3(avatarFileName, Buffer.from(req.file.buffer, 'base64'));
     return res.status(200).json({ avatar: avatarFileName });
   } catch (error) {
@@ -62,16 +62,15 @@ async function editUser(req, res) {
   const { firstName, lastName, currentPassword } = req.body;
   let { newPassword } = req.body;
   let isCurrentPasswordMatch;
-  let editUserQuery = `UPDATE user SET firstName = '${firstName}', lastName = '${lastName}' WHERE userId = '${userId}'`;
   try {
-    const [isUserExist] = await pool.query(`SELECT userId FROM user WHERE userId = ${userId}`);
+    const [isUserExist] = await pool.query('SELECT userId FROM user WHERE userId = ?', [userId]);
 
     if (!isUserExist[0]) {
       return res.status(400).json({ errorMsg: 'The user does not exist.' });
     }
 
     if (currentPassword && newPassword) {
-      const [userPasswordRow] = await pool.query(`SELECT password FROM user WHERE userId = '${userId}'`);
+      const [userPasswordRow] = await pool.query('SELECT password FROM user WHERE userId = ?', [userId]);
       isCurrentPasswordMatch = await bcrypt.compare(currentPassword, userPasswordRow[0].password);
 
       if (!isCurrentPasswordMatch) {
@@ -80,13 +79,12 @@ async function editUser(req, res) {
 
       newPassword = await bcrypt.hash(newPassword, 10);
 
-      editUserQuery = `UPDATE user 
-        SET firstName = '${firstName}', lastName = '${lastName}', password = '${newPassword}' 
-        WHERE userId = '${userId}'`;
+      await pool.query(`UPDATE user SET firstName = ?, lastName = ?, password = '?' WHERE userId = ?`,
+        [firstName, lastName, newPassword, userId]);
+    } else {
+      await pool.query('UPDATE user SET firstName = ?, lastName = ? WHERE userId = ?',
+        [firstName, lastName, userId]);
     }
-
-    await pool.query(editUserQuery);
-
     return res.status(200).json({ successMsg: 'User profile successfully updated' });
   } catch (error) {
     console.log(error);
@@ -101,17 +99,17 @@ async function editUser(req, res) {
 async function deleteUser(req, res) {
   const userId = req.user.id;
   try {
-    const [isUserExist] = await pool.query(`SELECT userId FROM user WHERE userId = ${userId}`);
+    const [isUserExist] = await pool.query('SELECT userId FROM user WHERE userId = ?', [userId]);
 
     if (!isUserExist[0]) {
       return res.status(400).json({ errorMsg: 'The user does not exist.' });
     }
 
-    await pool.query(`DELETE FROM cash WHERE userId = ${userId}`);
-    await pool.query(`DELETE FROM stock WHERE userId = ${userId}`);
-    await pool.query(`DELETE FROM defaultPortfolio WHERE userId = ${userId}`);
-    await pool.query(`DELETE FROM portfolio WHERE userId = ${userId}`);
-    await pool.query(`DELETE FROM user WHERE userId = ${userId}`);
+    await pool.query('DELETE FROM cash WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM stock WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM defaultPortfolio WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM portfolio WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM user WHERE userId = ?', [userId]);
 
     res.status(200).json({ successMsg: 'The account successfully deleted!' });
   } catch (error) {
