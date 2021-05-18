@@ -1,18 +1,15 @@
 const AWS = require('aws-sdk');
 require('dotenv').config();
 
-const ID = process.env.AWS_ID;
-const SECRET = process.env.AWS_SECRET;
-
 const s3 = new AWS.S3({
-  accessKeyId: ID,
-  secretAccessKey: SECRET
+  accessKeyId: process.env.AWS_ID,
+  secretAccessKey: process.env.AWS_SECRET
 })
 
-function uploadAvatarToS3(fileName, fileData) {
+function uploadAvatarToS3(fileName, fileData, userId) {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    Key: `avatars/${fileName}`,
+    Key: `avatars/${userId}/${fileName}`,
     ContentEncoding: 'base64',
     Body: fileData
   };
@@ -24,10 +21,10 @@ function uploadAvatarToS3(fileName, fileData) {
   });
 }
 
-function deleteAvatarFromS3(fileName) {
+function deleteAvatarFromS3(fileName, userId) {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
-    Key: `avatars/${fileName}`
+    Key: `avatars/${userId}/${fileName}`
   }
 
   s3.deleteObject(params, (err, data) => {

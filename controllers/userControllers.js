@@ -40,12 +40,13 @@ async function uploadAvatar(req, res) {
     const avatarFileName = `${uuidv4()}.${MIME_TYPE_MAP[req.file.mimetype]}`;
     const [previousFile] = await pool.query('SELECT avatar FROM user WHERE userId = ?', [userId]);
     if (previousFile[0].avatar) {
-      deleteAvatarFromS3(previousFile[0].avatar);
+      deleteAvatarFromS3(previousFile[0].avatar, userId);
       console.log(`file ${previousFile[0].avatar} was deleted!`);
     };
 
     await pool.query(`UPDATE user SET avatar = ? WHERE userId = ?`, [avatarFileName, userId]);
-    uploadAvatarToS3(avatarFileName, Buffer.from(req.file.buffer, 'base64'));
+    uploadAvatarToS3(avatarFileName, Buffer.from(req.file.buffer, 'base64'), userId);
+    new Promise(resolve => setTimeout(resolve, 500)); // wait 500ms for the latency while saving the image into S3
     return res.status(200).json({ avatar: avatarFileName });
   } catch (error) {
     console.log(error);
@@ -54,37 +55,22 @@ async function uploadAvatar(req, res) {
 }
 
 
-// @ROUTE         PUT user
+// @ROUTE         PUT user/profile
 // @DESCRIPTION   Edit User's profile
 // @ACCESS        Private
 async function editUser(req, res) {
   const userId = req.user.id;
-  const { firstName, lastName, currentPassword } = req.body;
-  let { newPassword } = req.body;
-  let isCurrentPasswordMatch;
+  const { firstName, lastName, username } = req.body;
   try {
     const [isUserExist] = await pool.query('SELECT userId FROM user WHERE userId = ?', [userId]);
 
     if (!isUserExist[0]) {
       return res.status(400).json({ errorMsg: 'The user does not exist.' });
     }
-
-    if (currentPassword && newPassword) {
-      const [userPasswordRow] = await pool.query('SELECT password FROM user WHERE userId = ?', [userId]);
-      isCurrentPasswordMatch = await bcrypt.compare(currentPassword, userPasswordRow[0].password);
-
-      if (!isCurrentPasswordMatch) {
-        return res.status(400).json({ errorMsg: 'Current password does not match.' });
-      }
-
-      newPassword = await bcrypt.hash(newPassword, 10);
-
-      await pool.query(`UPDATE user SET firstName = ?, lastName = ?, password = '?' WHERE userId = ?`,
-        [firstName, lastName, newPassword, userId]);
-    } else {
-      await pool.query('UPDATE user SET firstName = ?, lastName = ? WHERE userId = ?',
-        [firstName, lastName, userId]);
-    }
+    await pool.query(`
+    UPDATE user 
+    SET firstName = ?, lastName = ?, username = ?
+    WHERE userId = ?`, [firstName, lastName, username, userId]);
     return res.status(200).json({ successMsg: 'User profile successfully updated' });
   } catch (error) {
     console.log(error);
@@ -92,6 +78,33 @@ async function editUser(req, res) {
   }
 }
 
+
+// @ROUTE         PUT user/password
+// @DESCRIPTION   Edit User's profile
+// @ACCESS        Private
+async function editPassword(req, res) {
+  const userId = req.user.id;
+  const { currentPassword } = req.body;
+  let { newPassword } = req.body;
+
+  try {
+    const [userPasswordRow] = await pool.query('SELECT password FROM user WHERE userId = ?', [userId]);
+    isCurrentPasswordMatch = await bcrypt.compare(currentPassword, userPasswordRow[0].password);
+
+    if (!isCurrentPasswordMatch) {
+      return res.status(200).json(-2);
+    }
+
+    newPassword = await bcrypt.hash(newPassword, 10);
+
+    await pool.query(`UPDATE user SET password = ? WHERE userId = ?`,
+      [newPassword, userId]);
+    res.status(200).json(0);
+  } catch (error) {
+    console.log(error);
+    res.status(200).json(-1);
+  }
+}
 
 // @ROUTE         DELETE user
 // @DESCRIPTION   Delete user's account and all of its related information
@@ -118,9 +131,30 @@ async function deleteUser(req, res) {
   }
 }
 
+
+// @ROUTE         DELETE user/avatar
+// @DESCRIPTION   Delete user's avatar
+// @ACCESS        Private
+async function deleteAvatar(req, res) {
+  const userId = req.user.id;
+
+  try {
+    const [previousFile] = await pool.query('SELECT avatar FROM user WHERE userId = ?', [userId]);
+    if (previousFile[0].avatar) {
+      deleteAvatarFromS3(previousFile[0].avatar, userId);
+    };
+    res.status(200).json(0);
+  } catch (error) {
+    console.log(error);
+    res.status(200).json(-1);
+  }
+}
+
 module.exports = {
   getAvatar,
   uploadAvatar,
   editUser,
-  deleteUser
+  editPassword,
+  deleteUser,
+  deleteAvatar
 };

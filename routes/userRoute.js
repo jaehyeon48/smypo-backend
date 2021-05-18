@@ -7,7 +7,9 @@ const fileUploadMiddleware = require('../middlewares/fileUploadMiddleware');
 const {
   uploadAvatar,
   editUser,
-  deleteUser
+  editPassword,
+  deleteUser,
+  deleteAvatar
 } = require('../controllers/userControllers');
 
 
@@ -19,15 +21,27 @@ router.post('/avatar', [
   fileUploadMiddleware.single('avatar')
 ], uploadAvatar);
 
-// @ROUTE         PUT api/user
+// @ROUTE         PUT api/user/profile
 // @DESCRIPTION   Edit User's profile
 // @ACCESS        Private
-router.put('/', authMiddleware, editUser);
+router.put('/profile', authMiddleware, editUser);
+
+
+// @ROUTE         PUT api/user/profile
+// @DESCRIPTION   Edit User's profile
+// @ACCESS        Private
+router.put('/password', authMiddleware, editPassword);
 
 
 // @ROUTE         DELETE api/user
 // @DESCRIPTION   Delete user's account and all of its related information
 // @ACCESS        Private
 router.delete('/', authMiddleware, deleteUser);
+
+
+// @ROUTE         DELETE user/avatar
+// @DESCRIPTION   Delete user's avatar
+// @ACCESS        Private
+router.delete('/avatar', authMiddleware, deleteAvatar);
 
 module.exports = router;
