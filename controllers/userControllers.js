@@ -55,6 +55,27 @@ async function uploadAvatar(req, res) {
 }
 
 
+// @ROUTE         POST user/confirm-password
+// @DESCRIPTION   Confirm user's password
+// @ACCESS        Private
+async function confirmPassword(req, res) {
+  const userId = req.user.id;
+  const { confirmPassword } = req.body;
+
+  try {
+    const [userPasswordRow] = await pool.query('SELECT password FROM user WHERE userId = ?', [userId]);
+    isCurrentPasswordMatch = await bcrypt.compare(confirmPassword, userPasswordRow[0].password);
+
+    if (!isCurrentPasswordMatch) {
+      return res.status(200).json(-2);
+    }
+    res.status(200).json(0);
+  } catch (error) {
+    console.error(error);
+    res.status(200).json(-1);
+  }
+}
+
 // @ROUTE         PUT user/profile
 // @DESCRIPTION   Edit User's profile
 // @ACCESS        Private
@@ -111,23 +132,32 @@ async function editPassword(req, res) {
 // @ACCESS        Private
 async function deleteUser(req, res) {
   const userId = req.user.id;
+
   try {
     const [isUserExist] = await pool.query('SELECT userId FROM user WHERE userId = ?', [userId]);
 
     if (!isUserExist[0]) {
-      return res.status(400).json({ errorMsg: 'The user does not exist.' });
+      return res.status(200).json(-2);
     }
 
+    // delete avatar
+    const [previousFile] = await pool.query('SELECT avatar FROM user WHERE userId = ?', [userId]);
+    if (previousFile[0].avatar) {
+      deleteAvatarFromS3(previousFile[0].avatar, userId);
+    };
+
+    await pool.query('DELETE FROM dailyRecord WHERE userId = ?', [userId]);
     await pool.query('DELETE FROM cash WHERE userId = ?', [userId]);
+    await pool.query('DELETE FROM realizedStock WHERE userId = ?', [userId]);
     await pool.query('DELETE FROM stock WHERE userId = ?', [userId]);
     await pool.query('DELETE FROM defaultPortfolio WHERE userId = ?', [userId]);
     await pool.query('DELETE FROM portfolio WHERE userId = ?', [userId]);
     await pool.query('DELETE FROM user WHERE userId = ?', [userId]);
 
-    res.status(200).json({ successMsg: 'The account successfully deleted!' });
+    res.status(200).json(0);
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ errorMsg: 'Internal Server Error' });
+    return res.status(200).json(-1);
   }
 }
 
@@ -155,6 +185,7 @@ module.exports = {
   uploadAvatar,
   editUser,
   editPassword,
+  confirmPassword,
   deleteUser,
   deleteAvatar
 };

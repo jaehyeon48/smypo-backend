@@ -108,9 +108,9 @@ async function addStock(req, res) {
     if (transactionType === 'sell') {
       const insertedStockId = addStockResult[0].insertId; // newly created stock row's id
       await pool.query(`
-        INSERT INTO realizedStock (stockId, avgCost)
-        VALUES (?, ?)
-      `, [insertedStockId, currentAvgCost]);
+        INSERT INTO realizedStock (userId, stockId, avgCost)
+        VALUES (?, ?, ?)
+      `, [userId, insertedStockId, currentAvgCost]);
     }
 
     return res.status(201).json({ successMsg: 'Stock successfully added.' });
@@ -142,9 +142,9 @@ async function editStock(req, res) {
     // insert new realized return info
     if (previousTrTypeRow[0].transactionType === 'buy' && transactionType === 'sell') {
       await pool.query(`
-        INSERT INTO realizedStock (stockId, avgCost)
-        VALUES (?, ?)
-      `, [stockId, currentAvgCost]);
+        INSERT INTO realizedStock (userId, stockId, avgCost)
+        VALUES (?, ?, ?)
+      `, [userId, stockId, currentAvgCost]);
     }
     // delete realized return info
     else if (previousTrTypeRow[0].transactionType === 'sell' && transactionType === 'buy') {

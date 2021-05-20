@@ -8,6 +8,7 @@ const {
   uploadAvatar,
   editUser,
   editPassword,
+  confirmPassword,
   deleteUser,
   deleteAvatar
 } = require('../controllers/userControllers');
@@ -20,6 +21,13 @@ router.post('/avatar', [
   authMiddleware,
   fileUploadMiddleware.single('avatar')
 ], uploadAvatar);
+
+
+// @ROUTE         POST user/confirm-password
+// @DESCRIPTION   Confirm user's password
+// @ACCESS        Private
+router.post('/confirm-password', authMiddleware, confirmPassword);
+
 
 // @ROUTE         PUT api/user/profile
 // @DESCRIPTION   Edit User's profile
